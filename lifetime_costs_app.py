@@ -94,5 +94,5 @@ def lifetime_costs_app():
         about_data_page()
 
 
-with st.spinner("Loading the Energy-use profiles explorer..."):
+with st.spinner("Loading lifetime costs app..."):
     lifetime_costs_app()
