@@ -33,8 +33,8 @@ def set_up_sidebar():
     This function sets up the sidebar with a menu for navigating the app.
     """
     side_bar_options = option_menu(
-        menu_title="Energy-use profiles explorer",
-        menu_icon="lightning-charge",  # Icon for the sidebar menu
+        menu_title="Lifetime costs app",
+        menu_icon="piggy-bank",  # Icon for the sidebar menu
         options=[
             "About the app",
             "Results",
