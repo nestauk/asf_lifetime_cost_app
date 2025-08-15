@@ -8,7 +8,6 @@ import altair as alt
 
 # Local imports
 from config.fonts_setup import nestafont, NESTA_COLOURS
-from config import configs
 
 # Setting up themes and fonts
 alt.themes.register("nestafont", nestafont)
