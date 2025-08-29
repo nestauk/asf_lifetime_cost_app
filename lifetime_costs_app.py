@@ -37,7 +37,7 @@ def set_up_sidebar():
         menu_icon="piggy-bank",  # Icon for the sidebar menu
         options=[
             "About the app",
-            "Results",
+            "Lifetime costs: heat pumps and boilers",
             "About the data",
         ],  # The options to be displayed in the sidebar
         icons=[
@@ -85,10 +85,10 @@ def lifetime_costs_app():
     with st.sidebar:
         side_bar_options = set_up_sidebar()
 
-    if side_bar_options == "About the explorer":
+    if side_bar_options == "About the app":
         st.image(nesta_logo, width=200)
         about_dashboard_page()
-    elif side_bar_options == "Explore the results":
+    elif side_bar_options == "Lifetime costs: heat pumps and boilers":
         results_page()
     else:
         about_data_page()

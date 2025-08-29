@@ -18,4 +18,4 @@ def results_page():
     This function sets up the 'Results page' of the app.
     """
 
-    st.markdown("# Results")
+    st.markdown("# Lifetime costs: heat pumps and boilers")
