@@ -16,7 +16,8 @@ import os
 from config.fonts_setup import nestafont, NESTA_COLOURS
 from config.css_style import set_css_style
 from pages.about_dashboard_page import about_dashboard_page
-from pages.results_page import results_page
+from pages.scenario_comparison_page import comparing_scenarios_page
+from pages.scenario_selection_page import scenario_selection_page
 from pages.about_data_page import about_data_page
 
 # Setting up themes and fonts
@@ -33,15 +34,17 @@ def set_up_sidebar():
     This function sets up the sidebar with a menu for navigating the app.
     """
     side_bar_options = option_menu(
-        menu_title="Lifetime costs app",
+        menu_title="Lifetime costs explorer",
         menu_icon="piggy-bank",  # Icon for the sidebar menu
         options=[
             "About the app",
-            "Lifetime costs: heat pumps and boilers",
+            "Lifetime costs: scenario selection",
+            "Lifetime costs: comparing scenarios",
             "About the data",
         ],  # The options to be displayed in the sidebar
         icons=[
             "house",
+            "menu-button-wide-fill",
             "bar-chart",
             "info-circle",
         ],  # These are the icons to be displayed next to the options. You can select from: https://icons.getbootstrap.com/
@@ -88,8 +91,10 @@ def lifetime_costs_app():
     if side_bar_options == "About the app":
         st.image(nesta_logo, width=200)
         about_dashboard_page()
-    elif side_bar_options == "Lifetime costs: heat pumps and boilers":
-        results_page()
+    elif side_bar_options == "Lifetime costs: scenario selection":
+        scenario_selection_page()
+    elif side_bar_options == "Lifetime costs: comparing scenarios":
+        comparing_scenarios_page()
     else:
         about_data_page()
 
