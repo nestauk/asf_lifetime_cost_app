@@ -28,6 +28,7 @@ def scenario_selection_page():
     st.write(
         """
              If you select a predefined scenario, the parameters will be set automatically. If you choose to build a custom scenario, start by naming it.
+             Below you can also select the installation year and cost decile for your results. When you build a custom scenario, you can then define other the parameters in more detail.
              """
     )
     scenario_names = [scenarios[key]["name"] for key in scenarios.keys()]
@@ -240,6 +241,8 @@ def scenario_selection_page():
                             )
 
     st.markdown("### Results")
+    name = selected_scenario if  selected_scenario!= "Build a custom scenario" else scenario_name
+    st.markdown(f"Below you can see the results for the **'{name}'** scenario.")
 
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
     with filter_archetypes_col:
@@ -250,6 +253,10 @@ def scenario_selection_page():
             key="filter_archetypes_input",
             help="Filter the results by archetype",
         )
+
+    st.write("This is where we will have the key figures and charts.")
+
+    st.markdown("### Download data")
 
     st.write("Dummy data just for testing...")
     dummy_data = pd.DataFrame(
@@ -283,7 +290,6 @@ def scenario_selection_page():
     st.dataframe(dummy_data, use_container_width=True)
     st.dataframe(total_dummy_data, use_container_width=True)
 
-    st.markdown("### Download data")
     csv_annual = dummy_data.to_csv()
     csv_total = total_dummy_data.to_csv()
 
