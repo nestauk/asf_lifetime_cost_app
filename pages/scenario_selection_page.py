@@ -240,8 +240,8 @@ def scenario_selection_page():
                                 help="Select which levies to rebalance between electricity and gas",
                             )
 
-    st.markdown("### Results")
     name = selected_scenario if  selected_scenario!= "Build a custom scenario" else scenario_name
+    st.markdown(f"### Observe how the lifetime cost of heat pumps compares to gas boilers under the **'{name}'** scenario")
     st.markdown(f"Below you can see the results for the **'{name}'** scenario.")
 
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
@@ -254,7 +254,7 @@ def scenario_selection_page():
             help="Filter the results by archetype",
         )
 
-    st.write("This is where we will have the key figures and charts.")
+    st.write("<This is where we will have the key figures and charts.>")
 
     st.markdown("### Download data")
 
