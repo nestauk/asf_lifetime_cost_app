@@ -27,7 +27,7 @@ ashp_subsidy_options = [
     "zero from 2028",
     "smallest",
     "no subsidy",
-    "other", # for custom subsidy input
+    "custom subsidy model", # for custom subsidy input
   ]
 
 ashp_annual_cost_decrease_range = [-0.01, 0.05] # range for annual cost decrease for ASHPs -1% to +5%
@@ -36,8 +36,7 @@ ashp_annual_cost_decrease_default = 0.01 # 1% annual cost decrease for ASHPs
 
 ashp_loans_options = [True, False] # whether ASHPs are purchased with loans
 
-loan_interest_rate_options ={
-  [
+loan_interest_rate_options = [
     { "value": 0, "name": "0%", "helper": "fully subsidised loan" },
     {
       "value": 0.05,
@@ -46,7 +45,6 @@ loan_interest_rate_options ={
     },
     { "value": 0.01, "name": "10%", "helper": "personal finance" },
   ]
-}
 
 loan_interest_rate_default = 0.05 # default loan interest rate
 

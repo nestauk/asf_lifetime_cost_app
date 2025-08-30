@@ -4,7 +4,7 @@ Dictionary with a list of pre-set scenarios and respective arguments used
 to calculate the lifetime cost of different heating systems.
 """
 
-import config
+from config.config import loan_interest_rate_default
 
 scenarios = {
     "baseline_A": {
@@ -13,7 +13,7 @@ scenarios = {
         "ashp_subsidy": "zero from 2028",
         "ashp_annual_cost_decrease": 0.01,  # moderate, 1% annual cost decrease
         "purchasing_with_loans": True,
-        "loan_interest_rate": config.get("loan_interest_rate_default"),
+        "loan_interest_rate": loan_interest_rate_default,
         "wholesale_price_projection": "reference",
         "levy_rebalancing": "reference",
     },
@@ -23,7 +23,7 @@ scenarios = {
         "ashp_subsidy": "fast stepdown",
         "ashp_annual_cost_decrease": 0.05,  # optimistic, 5% annual cost decrease
         "purchasing_with_loans": True,
-        "loan_interest_rate": config.get("loan_interest_rate_default"),
+        "loan_interest_rate": loan_interest_rate_default,
         "wholesale_price_projection": "reference",
         "levy_rebalancing": "",  # ?
     },
@@ -33,7 +33,7 @@ scenarios = {
         "ashp_subsidy": "fast stepdown",
         "ashp_annual_cost_decrease": 0.01,  # moderate, 1% annual cost decrease
         "purchasing_with_loans": True,
-        "loan_interest_rate": config.get("loan_interest_rate_default"),
+        "loan_interest_rate": loan_interest_rate_default,
         "wholesale_price_projection": "low fossil fuel prices",
         "levy_rebalancing": "",  # ?
     },
@@ -43,7 +43,7 @@ scenarios = {
         "ashp_subsidy": "high",
         "ashp_annual_cost_decrease": 0.01,  # moderate, 1% annual cost decrease
         "purchasing_with_loans": True,
-        "loan_interest_rate": config.get("loan_interest_rate_default"),
+        "loan_interest_rate": loan_interest_rate_default,
         "wholesale_price_projection": "reference",
         "levy_rebalancing": "",  # ?
     },
