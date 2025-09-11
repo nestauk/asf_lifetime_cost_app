@@ -77,9 +77,35 @@ def scenario_selection_page():
 
         if scenario_name != "":
             with st.expander("⚙️ Define your custom scenario parameters"):
+
                 st.write(
                     "Expand the sections below to define your custom scenario parameters."
                 )
+
+                with st.expander("🗓️ Life span"):
+                    ashp_lifetime_col, boiler_lifetime_col = st.columns(2)
+
+                    with ashp_lifetime_col:
+                        ashp_life_span = st.slider(
+                            label="ASHP life span (years)",
+                            min_value=1,
+                            max_value=25,
+                            value=config.life_span_default["ashp"],
+                            step=1,
+                            key="custom_ashp_life_span_input",
+                            help="Number of years air source heat pump is assumed to be operational",
+                        )
+                    with boiler_lifetime_col:
+                        boiler_life_span = st.slider(
+                            label="Gas boiler life span (years)",
+                            min_value=1,
+                            max_value=25,
+                            value=config.life_span_default["boiler"],
+                            step=1,
+                            key="custom_boiler_life_span_input",
+                            help="Number of years gas boiler is assumed to be operational",
+                        )
+
                 with st.expander("👨🏻‍🔧 Maintenance costs"):
                     ashp_maintenance_cost_col, boiler_maintenance_cost_col = st.columns(
                         2
@@ -89,37 +115,53 @@ def scenario_selection_page():
                         ashp_maintenance_cost = st.slider(
                             label="ASHP annual maintenance cost (£)",
                             min_value=0,
-                            max_value=500,
+                            max_value=350,
                             value=config.maintenance_costs_default["ashp"],
-                            step=10,
+                            step=5,
                             key="custom_ashp_maintenance_cost_input",
                             help="Annual maintenance cost for the ASHP",
+                        )
+                        ashp_maintenance_frequency = st.slider(
+                            label="ASHP frequency of maintenance per year",
+                            min_value=0.0,
+                            max_value=4.0,
+                            value=1.0,
+                            step=0.2,
+                            key="custom_ashp_maintenance_frequency_input",
+                            help="Average number of times that ASHP is assumed to be serviced per year. Values less than 1 are possible, i.e. 0.5 means every two years.",
                         )
                     with boiler_maintenance_cost_col:
                         boiler_maintenance_cost = st.slider(
                             label="Boiler annual maintenance cost (£)",
                             min_value=0,
-                            max_value=500,
+                            max_value=350,
                             value=config.maintenance_costs_default["boiler"],
-                            step=10,
+                            step=5,
                             key="custom_boiler_maintenance_cost_input",
                             help="Annual maintenance cost for the gas boiler",
+                        )
+                        boiler_maintenance_frequency = st.slider(
+                            label="Boiler frequency of maintenance per year",
+                            min_value=0.0,
+                            max_value=4.0,
+                            value=1.0,
+                            step=0.2,
+                            key="custom_boiler_maintenance_frequency_input",
+                            help="Average number of times that gas boiler is assumed to be serviced per year. Values less than 1 are possible, i.e. 0.5 means every two years.",
                         )
 
                 with st.expander("📈 Effiency measures"):
                     ashp_efficiency_col, boiler_efficiency_col = st.columns(2)
 
                     with ashp_efficiency_col:
-                        ashp_efficiency = st.selectbox(
+                        ashp_efficiency = st.slider(
                             label="ASHP efficiency",
-                            options=[
-                                "reference: SCOP = 3",  # SCOP 3
-                                "high: SCOP > 3",  # SCOP > 3
-                                "low: SCOP < 3",  # SCOP < 3
-                            ],
-                            index=0,
+                            min_value=1.0,
+                            max_value=5.0,
+                            value=3.0,
+                            step=0.1,
                             key="custom_ashp_efficiency_input",
-                            help="Seasonal Coefficient of Performance (SCOP) of the ASHP",
+                            help="Efficiency of the air source heat pump",
                         )
                     with boiler_efficiency_col:
                         boiler_efficiency = st.slider(
@@ -158,12 +200,15 @@ def scenario_selection_page():
                                     key="custom_ashp_loan_interest_rate_input",
                                     help="The interest rate of the ASHP loan",
                                 )
+                    st.markdown(
+                        "Note: Loan repayment period is assumed to be over the ASHP's lifetime."
+                    )
                 with st.expander("💰 Subsidy"):
                     col1, ashp_subsidy_col, col2 = st.columns([1, 4, 1])
 
                     with ashp_subsidy_col:
                         # --- Main selectbox (always visible) ---
-                        ashp_subsid_model = st.selectbox(
+                        ashp_subsidy_model = st.selectbox(
                             label="Choose an ASHP subsidy model - visit the 'About the app' page for more details",
                             options=[
                                 opt.capitalize() for opt in config.ashp_subsidy_options
@@ -173,8 +218,10 @@ def scenario_selection_page():
                             help="Choose an ASHP subsidy model",
                         )
 
-                        if ashp_subsid_model == "Custom subsidy model":
-                            st.write("Edit the subsidy values below (£) for each year.")
+                        if ashp_subsidy_model == "Custom subsidy model":
+                            st.write(
+                                "Edit the subsidy values below (£) for each year by double-clicking on the cell."
+                            )
                             column_config = {
                                 "Year": st.column_config.NumberColumn(
                                     "Year",
@@ -217,7 +264,7 @@ def scenario_selection_page():
                             help="The wholesale price projection for electricity and gas prices",
                         )
                 with st.expander("⚖️ Levy rebalancing options"):
-                    levy_rebalancing_col, levies_to_rebalance_col = st.columns(2)
+                    levy_rebalancing_col, levies_inputs_col = st.columns(2)
 
                     with levy_rebalancing_col:
                         levy_rebalancing = st.selectbox(
@@ -231,17 +278,35 @@ def scenario_selection_page():
                         levy_rebalancing
                         == "rebalance unit costs between electricity and gas"
                     ):
-                        with levies_to_rebalance_col:
-                            levies_to_rebalance = st.multiselect(
-                                label="Select which levies to rebalance",
-                                options=["A", "B", "C", "D", "E"],
-                                default=["A", "B"],
-                                key="custom_levies_to_rebalance_input",
-                                help="Select which levies to rebalance between electricity and gas",
+                        with levies_inputs_col:
+                            variable_electricity_weight = st.slider(
+                                label="Rebalance between electricity (0) <-> gas (100)",
+                                min_value=0.0,
+                                max_value=100.0,
+                                value=0.0,
+                                step=10.0,
+                                key="custom_levy_variable_electricity_weights_input",
+                                help="Proportion of the scheme revenue that is levied against electricity units",
                             )
+                            st.markdown(
+                                "The following levies that are ordinarily levied against electricity units are rebalanced: "
+                                "RO, FiT, ECO, AAHEDC, NCC."
+                            )
+                    if levy_rebalancing == "remove all electricity levies to taxation":
+                        st.markdown(
+                            "The following levies that are ordinarily levied against electricity (units or customers) are removed to raise revenue through general taxation: "
+                            "RO, FiT, ECO (only proportion of revenue raised ordinarily via electricity units), WHD (only proportion of revenue raised ordinarily via electricity customers),"
+                            " AAHEDC, NCC"
+                        )  # ECO and WHD tricky to explain because they are currently levied on both gas and electricity
 
-    name = selected_scenario if  selected_scenario!= "Build a custom scenario" else scenario_name
-    st.markdown(f"### Observe how the lifetime cost of heat pumps compares to gas boilers under the **'{name}'** scenario")
+    name = (
+        selected_scenario
+        if selected_scenario != "Build a custom scenario"
+        else scenario_name
+    )
+    st.markdown(
+        f"### Observe how the lifetime cost of heat pumps compares to gas boilers under the **'{name}'** scenario"
+    )
     st.markdown(f"Below you can see the results for the **'{name}'** scenario.")
 
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])

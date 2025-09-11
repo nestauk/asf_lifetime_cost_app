@@ -2,22 +2,16 @@
 # that enable the calculation of lifetime costs for different heating systems
 
 ashp_efficiency_options = [
-    "reference", # SCOP 3
-    "high", # SCOP > 3
-    "low", # SCOP < 3
-  ]
+    "reference",  # SCOP 3
+    "high",  # SCOP > 3
+    "low",  # SCOP < 3
+]
 
-boiler_efficiency_default = 0.85 # boiler efficiency
+boiler_efficiency_default = 0.85  # boiler efficiency
 
-life_span_default={ # in years
-  "ashp": 15, # years
-  "boiler": 15 # years
-}
+life_span_default = {"ashp": 15, "boiler": 15}  # in years  # years  # years
 
-maintenance_costs_default = {
-  "ashp": 80, # GBP
-  "boiler": 80 # GBP
-}
+maintenance_costs_default = {"ashp": 80, "boiler": 80}  # GBP  # GBP
 
 ashp_subsidy_options = [
     "flat",
@@ -27,37 +21,41 @@ ashp_subsidy_options = [
     "zero from 2028",
     "smallest",
     "no subsidy",
-    "custom subsidy model", # for custom subsidy input
-  ]
+    "custom subsidy model",  # for custom subsidy input
+]
 
-ashp_annual_cost_decrease_range = [-0.01, 0.05] # range for annual cost decrease for ASHPs -1% to +5%
+ashp_annual_cost_decrease_range = [
+    -0.01,
+    0.05,
+]  # range for annual cost decrease for ASHPs -1% to +5%
 
-ashp_annual_cost_decrease_default = 0.01 # 1% annual cost decrease for ASHPs
+ashp_annual_cost_decrease_default = 0.01  # 1% annual cost decrease for ASHPs
 
-ashp_loans_options = [True, False] # whether ASHPs are purchased with loans
+ashp_loans_options = [True, False]  # whether ASHPs are purchased with loans
 
 loan_interest_rate_options = [
-    { "value": 0, "name": "0%", "helper": "fully subsidised loan" },
+    {"value": 0, "name": "0%", "helper": "fully subsidised loan"},
     {
-      "value": 0.05,
-      "name": "5%",
-      "helper": "government borrowing or morgage",
+        "value": 0.05,
+        "name": "5%",
+        "helper": "government borrowing or morgage",
     },
-    { "value": 0.01, "name": "10%", "helper": "personal finance" },
-  ]
+    {"value": 0.01, "name": "10%", "helper": "personal finance"},
+]
 
-loan_interest_rate_default = 0.05 # default loan interest rate
+loan_interest_rate_default = 0.05  # default loan interest rate
 
 wholesale_price_projection_options = [
-    "reference", # DESNZ_Ref
-    "low fossil fuel prices", # DESNZ_Low
-    "high fossil fuel prices", # DESNZ_High
-  ]
+    "reference",  # DESNZ_Ref
+    "low fossil fuel prices",  # DESNZ_Low
+    "high fossil fuel prices",  # DESNZ_High
+]
 
 levy_rebalancing_options = [
+    "no rebalancing (current price cap)",
     "rebalance unit costs between electricity and gas",
     "remove all electricity levies to taxation",
-  ]
+]
 
-cost_data_reference_year = 2023 # reference year for ashp cost data
+cost_data_reference_year = 2023  # reference year for ashp cost data
 cost_year_max = 2035
