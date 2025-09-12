@@ -1,0 +1,7 @@
+streamlit>=1.23.0
+matplotlib
+altair
+streamlit-option-menu
+s3fs
+openpyxl
+botocore>=1.39.7
