@@ -7,7 +7,7 @@ to calculate the lifetime cost of different heating systems.
 from config.config import loan_interest_rate_default
 
 scenarios = {
-    "baseline_A": {
+    "Baseline": {
         "name": "Baseline",
         "ashp_scop": "reference",
         "ashp_subsidy": "zero from 2028",
@@ -17,7 +17,7 @@ scenarios = {
         "wholesale_price_projection": "reference",
         "levy_rebalancing": "reference",
     },
-    "scenario_B": {
+    "High innovation": {
         "name": "High innovation",
         "ashp_scop": "high",
         "ashp_subsidy": "fast stepdown",
@@ -27,7 +27,7 @@ scenarios = {
         "wholesale_price_projection": "reference",
         "levy_rebalancing": "",  # ?
     },
-    "scenario_C": {
+    "Cheaper electricity": {
         "name": "Cheaper electricity",
         "ashp_scop": "reference",
         "ashp_subsidy": "fast stepdown",
@@ -37,7 +37,7 @@ scenarios = {
         "wholesale_price_projection": "low fossil fuel prices",
         "levy_rebalancing": "",  # ?
     },
-    "scenario_D": {
+    "High subsidy": {
         "name": "High subsidy",
         "ashp_scop": "reference",
         "ashp_subsidy": "high",
