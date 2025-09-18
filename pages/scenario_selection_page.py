@@ -7,10 +7,14 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 
+
 # Local imports
 from config.fonts_setup import nestafont, NESTA_COLOURS
 from config.scenarios import scenarios
 from config import config
+from asf_lifetime_cost_model.pipeline.lifetime_cost_calculator import (
+    LifetimeCostCalculator,
+)
 
 # Setting up themes and fonts
 alt.themes.register("nestafont", nestafont)
@@ -298,6 +302,37 @@ def scenario_selection_page():
                             "RO, FiT, ECO (only proportion of revenue raised ordinarily via electricity units), WHD (only proportion of revenue raised ordinarily via electricity customers),"
                             " AAHEDC, NCC"
                         )  # ECO and WHD tricky to explain because they are currently levied on both gas and electricity
+    else:
+        scenario_info = scenarios[selected_scenario]
+        ashp_life_span = config.life_span_default["ashp"]
+        boiler_life_span = config.life_span_default["boiler"]
+        ashp_maintenance_cost = config.maintenance_costs_default["ashp"]
+        boiler_maintenance_cost = config.maintenance_costs_default["boiler"]
+        ashp_maintenance_frequency = 1.0
+        boiler_maintenance_frequency = 1.0
+        ashp_efficiency = 3.0 if scenario_info["ashp_scop"] == "reference" else 3.5
+        boiler_efficiency = config.boiler_efficiency_default
+        ashp_purchased_with_loan = (
+            "Yes" if scenario_info["purchasing_with_loans"] else "No"
+        )
+        ashp_loan_interes_rate = next(
+            option["name"].capitalize()
+            + ": "
+            + option["helper"]
+            for option in config.loan_interest_rate_options
+            if option["value"] == scenario_info["loan_interest_rate"]
+        )
+        ashp_subsidy_model = (
+            scenario_info["ashp_subsidy"].capitalize()
+            if scenario_info["ashp_subsidy"] in config.ashp_subsidy_options
+            else "Custom subsidy model"
+        )
+        wholesale_price_projection = scenario_info["wholesale_price_projection"]
+        levy_rebalancing = (
+            scenario_info["levy_rebalancing"]
+            if scenario_info["levy_rebalancing"] in config.levy_rebalancing_options
+            else "no rebalancing (current price cap)"
+        )
 
     name = (
         selected_scenario
@@ -309,67 +344,129 @@ def scenario_selection_page():
     )
     st.markdown(f"Below you can see the results for the **'{name}'** scenario.")
 
+    cost_calculator = LifetimeCostCalculator()
+
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
     with filter_archetypes_col:
         filter_archetypes = st.multiselect(
             label="Select or de-select archetypes to filter the results",
-            options=["A", "B", "C"],
-            default=["A", "B", "C"],
+            options=cost_calculator.property_archetypes,
+            default=cost_calculator.property_archetypes,
             key="filter_archetypes_input",
             help="Filter the results by archetype",
         )
 
-    st.write("<This is where we will have the key figures and charts.>")
+    # ASHP calculation
+    ashp_upfront_costs = cost_calculator.compute_upfront_cost(
+        heating_system="ashp",
+        annual_cost_reduction=0.05,
+        purchase_year=installation_year,
+        life_span=ashp_life_span,
+        decile=cost_decile,
+        subsidy_model_or_input_values=ashp_subsidy_model if ashp_subsidy_model!="Custom subsidy model" else subsidies_table,
+        purchase_with_loan=ashp_purchased_with_loan,
+        loan_interest_rate=ashp_loan_interes_rate,
+    )
+    ashp_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
+         maintenance_frequency_per_year=ashp_maintenance_frequency, 
+         maintenance_cost=ashp_maintenance_cost, 
+         life_span=ashp_life_span
+    )
+
+    ashp_running_costs = cost_calculator.compute_running_cost_time_series(
+            purchase_year=installation_year,
+            life_span=ashp_life_span,
+            heating_system_efficiency=ashp_efficiency,
+            fuel_type="electricity",
+            wholesale_price_projection_scenario=wholesale_price_projection,
+            include_standing_charge=False,
+            levy_rebalancing=levy_rebalancing,
+            levies_to_rebalance=["ro"],
+            levy_rebalancing_weights={
+                "electricity_weight": 0,
+                "gas_weight": 1,
+                "tax_weight": 0,
+                "fixed_electricity_weight": 0,
+                "variable_electricity_weight": 0,
+                "fixed_gas_weight": 0,
+                "variable_gas_weight": 1,
+            },
+            include_vat=True,
+        )
+    ashp_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
+        installation_costs=ashp_upfront_costs,
+        maintenance_costs=ashp_maintenance_costs,
+        running_costs=ashp_running_costs,
+    )
+
+    ashp_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
+        total_lifetime_costs=ashp_lifetime_costs,
+        cost_column="total_lifetime_costs",
+        life_span=ashp_life_span 
+    )
+    
+    boiler_upfront_costs = cost_calculator.compute_upfront_cost(
+        heating_system="boiler",
+        purchase_year=installation_year,
+        life_span=ashp_life_span,
+    )
+    boiler_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
+         maintenance_frequency_per_year=boiler_maintenance_frequency, 
+         maintenance_cost=boiler_maintenance_cost, 
+         life_span=boiler_life_span
+    )
+
+    boiler_running_costs = cost_calculator.compute_running_cost_time_series(
+            purchase_year=installation_year,
+            life_span=boiler_life_span,
+            heating_system_efficiency=boiler_efficiency,
+            fuel_type="gas",
+            wholesale_price_projection_scenario=wholesale_price_projection,
+            include_standing_charge=False,
+            levy_rebalancing=levy_rebalancing,
+            levies_to_rebalance=["ro", "fit", "eco", "aahedc", "ncc"],
+            levy_rebalancing_weights={
+                "electricity_weight": 0,
+                "gas_weight": 1,
+                "tax_weight": 0,
+                "fixed_electricity_weight": 0,
+                "variable_electricity_weight": variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 0,
+                "fixed_gas_weight": 0,
+                "variable_gas_weight": 1-variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 1,
+            },
+            include_vat=True,
+        )
+    
+    boiler_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
+        installation_costs=boiler_upfront_costs,
+        maintenance_costs=boiler_maintenance_costs,
+        running_costs=boiler_running_costs,
+    )
+
+    boiler_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
+        total_lifetime_costs=boiler_lifetime_costs,
+        cost_column="total_lifetime_costs",
+        life_span=boiler_life_span
+    )
+
 
     st.markdown("### Download data")
 
-    st.write("Dummy data just for testing...")
-    dummy_data = pd.DataFrame(
-        {
-            "Archetype": ["A", "A", "B", "B", "C", "C"],
-            "Technology": ["ASHP", "Boiler", "ASHP", "Boiler", "ASHP", "Boiler"],
-            "Annualised cost of installation": [1000, 200, 3000, 100, 900, 133],
-            "Running cost in each year of operation": [150, 200, 160, 210, 140, 190],
-            "Annual maintenance cost": [80, 80, 80, 80, 80, 80],
-            "Annualised subsidy": [500, 0, 500, 0, 500, 0],
-        }
-    )
-    dummy_data = dummy_data[dummy_data["Archetype"].isin(filter_archetypes)]
-    dummy_data["Annualised lifetime cost"] = (
-        dummy_data["Annualised cost of installation"]
-        + dummy_data["Running cost in each year of operation"]
-        + dummy_data["Annual maintenance cost"]
-        - dummy_data["Annualised subsidy"]
-    )
-    dummy_data.set_index(["Archetype", "Technology"], inplace=True)
+    # csv_annual = dummy_data.to_csv()
+    # csv_total = total_dummy_data.to_csv()
 
-    total_dummy_data = dummy_data * 15
-    total_dummy_data.columns = [
-        "Total cost of installation",
-        "Total running cost over 15 years",
-        "Total maintenance cost over 15 years",
-        "Total subsidy",
-        "Total lifetime cost",
-    ]
+    # st.download_button(
+    #     label="Download annualised costs data",
+    #     data=csv_annual,
+    #     file_name="annualised_costs_data.csv",
+    #     mime="text/csv",
+    #     icon=":material/download:",
+    # )
 
-    st.dataframe(dummy_data, use_container_width=True)
-    st.dataframe(total_dummy_data, use_container_width=True)
-
-    csv_annual = dummy_data.to_csv()
-    csv_total = total_dummy_data.to_csv()
-
-    st.download_button(
-        label="Download annualised costs data",
-        data=csv_annual,
-        file_name="annualised_costs_data.csv",
-        mime="text/csv",
-        icon=":material/download:",
-    )
-
-    st.download_button(
-        label="Download total costs data",
-        data=csv_total,
-        file_name="lifetime_costs_data.csv",
-        mime="text/csv",
-        icon=":material/download:",
-    )
+    # st.download_button(
+    #     label="Download total costs data",
+    #     data=csv_total,
+    #     file_name="lifetime_costs_data.csv",
+    #     mime="text/csv",
+    #     icon=":material/download:",
+    # )
