@@ -75,7 +75,7 @@ def scenario_selection_page():
         with new_scenario_name_col:
             scenario_name = st.text_input(
                 label="Name your custom scenario",
-                value="",
+                value="<My custom scenario>",
                 key="custom_scenario_name_input",
             )
 
@@ -195,10 +195,8 @@ def scenario_selection_page():
                                 ashp_loan_interes_rate = st.selectbox(
                                     label="ASHP loan interest rate",
                                     options=[
-                                        option["name"]
-                                        + ": "
-                                        + option["helper"]
-                                        for option in config.loan_interest_rate_options
+                                        option
+                                        for option in config.loan_interest_rate_options.keys()
                                     ],
                                     index=1,
                                     key="custom_ashp_loan_interest_rate_input",
@@ -222,7 +220,7 @@ def scenario_selection_page():
                             help="Choose an ASHP subsidy model",
                         )
 
-                        if ashp_subsidy_model == "Custom subsidy model":
+                        if ashp_subsidy_model == "custom subsidy model":
                             st.write(
                                 "Edit the subsidy values below (£) for each year by double-clicking on the cell."
                             )
@@ -302,7 +300,7 @@ def scenario_selection_page():
                             "RO, FiT, ECO (only proportion of revenue raised ordinarily via electricity units), WHD (only proportion of revenue raised ordinarily via electricity customers),"
                             " AAHEDC, NCC"
                         )  # ECO and WHD tricky to explain because they are currently levied on both gas and electricity
-    else:
+    else: # if a predefined scenario is selected
         scenario_info = scenarios[selected_scenario]
         ashp_life_span = config.life_span_default["ashp"]
         boiler_life_span = config.life_span_default["boiler"]
@@ -310,18 +308,15 @@ def scenario_selection_page():
         boiler_maintenance_cost = config.maintenance_costs_default["boiler"]
         ashp_maintenance_frequency = 1.0
         boiler_maintenance_frequency = 1.0
-        ashp_efficiency = 3.0 if scenario_info["ashp_scop"] == "reference" else 3.5
+        ashp_efficiency = 3.0 if scenario_info["ashp_scop"] == "reference" else 3.5 if scenario_info["ashp_scop"] == "high" else 2.5
         boiler_efficiency = config.boiler_efficiency_default
         ashp_purchased_with_loan = (
             "Yes" if scenario_info["purchasing_with_loans"] else "No"
         )
-        ashp_loan_interes_rate = next(
-            option["name"]
-            + ": "
-            + option["helper"]
-            for option in config.loan_interest_rate_options
-            if option["value"] == scenario_info["loan_interest_rate"]
-        )
+        if ashp_purchased_with_loan == "Yes":
+            ashp_loan_interes_rate = scenario_info["loan_interest_rate"]
+        else:
+            ashp_loan_interes_rate = 0
 
         ashp_subsidy_model = scenario_info["ashp_subsidy"]
         
@@ -376,98 +371,135 @@ def scenario_selection_page():
             help="Filter the results by archetype",
         )
 
-    # # ASHP calculation
-    # ashp_upfront_costs = cost_calculator.compute_upfront_cost(
-    #     heating_system="ashp",
-    #     annual_cost_reduction=0.05,
-    #     purchase_year=installation_year,
-    #     life_span=ashp_life_span,
-    #     decile=cost_decile,
-    #     subsidy_model_or_input_values=ashp_subsidy_model if ashp_subsidy_model!="Custom subsidy model" else subsidies_table,
-    #     purchase_with_loan=ashp_purchased_with_loan,
-    #     loan_interest_rate=ashp_loan_interes_rate,
-    # )
-    # ashp_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
-    #      maintenance_frequency_per_year=ashp_maintenance_frequency, 
-    #      maintenance_cost=ashp_maintenance_cost, 
-    #      life_span=ashp_life_span
-    # )
+    # Processing inputs before computations
+    if ashp_purchased_with_loan == "Yes":
+        ashp_purchased_with_loan = True
+        ashp_loan_interes_rate = config.loan_interest_rate_options.get(ashp_loan_interes_rate)
+    else:
+        ashp_purchased_with_loan = False
+        ashp_loan_interes_rate = 0.0
 
-    # ashp_running_costs = cost_calculator.compute_running_cost_time_series(
-    #         purchase_year=installation_year,
-    #         life_span=ashp_life_span,
-    #         heating_system_efficiency=ashp_efficiency,
-    #         fuel_type="electricity",
-    #         wholesale_price_projection_scenario=wholesale_price_projection,
-    #         include_standing_charge=False,
-    #         levy_rebalancing=levy_rebalancing,
-    #         levies_to_rebalance=["ro"],
-    #         levy_rebalancing_weights={
-    #             "electricity_weight": 0,
-    #             "gas_weight": 1,
-    #             "tax_weight": 0,
-    #             "fixed_electricity_weight": 0,
-    #             "variable_electricity_weight": 0,
-    #             "fixed_gas_weight": 0,
-    #             "variable_gas_weight": 1,
-    #         },
-    #         include_vat=True,
-    #     )
-    # ashp_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
-    #     installation_costs=ashp_upfront_costs,
-    #     maintenance_costs=ashp_maintenance_costs,
-    #     running_costs=ashp_running_costs,
-    # )
+    if levy_rebalancing == "no rebalancing (current price cap)":
+        levy_rebalancing = False
+        levies_to_rebalance = None
+        levies_rebalancing_weights = None
+    elif levy_rebalancing == "rebalance unit costs between electricity and gas":
+        levy_rebalancing = True
+        levies_to_rebalance = ["ro", "fit", "eco", "aahedc", "ncc"]
+        levies_rebalancing_weights = {
+                "electricity_weight": 0,
+                "gas_weight": 1,
+                "tax_weight": 0,
+                "fixed_electricity_weight": 0,
+                "variable_electricity_weight": variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 0,
+                "fixed_gas_weight": 0,
+                "variable_gas_weight": 1-variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 1,
+            }
+    elif levy_rebalancing == "remove all electricity levies to taxation":
+        levy_rebalancing = True
+        levies_to_rebalance = ["ro", "fit", "eco", "whd", "aahedc", "ncc"]
+        levies_rebalancing_weights = {
+                "electricity_weight": 0,
+                "gas_weight": 1,
+                "tax_weight": 0,
+                "fixed_electricity_weight": 0,
+                "variable_electricity_weight": 0,
+                "fixed_gas_weight": 0,
+                "variable_gas_weight": 1,
+            }
+    elif levy_rebalancing == "rebalance RO and FiT from electricity to gas":
+        levy_rebalancing = True
+        levies_to_rebalance = ["ro", "fit"]
+        levies_rebalancing_weights = {
+                "electricity_weight": 0,
+                "gas_weight": 1,
+                "tax_weight": 0,
+                "fixed_electricity_weight": 0,
+                "variable_electricity_weight": 0,
+                "fixed_gas_weight": 0,
+                "variable_gas_weight": 1
+            }
+    else:
+        ValueError("Levy rebalancing option not recognised")
+        
+    # ASHP calculation
+    ashp_upfront_costs = cost_calculator.compute_upfront_cost(
+        heating_system="ashp",
+        annual_cost_reduction=0.05,
+        purchase_year=installation_year,
+        life_span=ashp_life_span,
+        decile=cost_decile,
+        subsidy_model_or_input_values=ashp_subsidy_model if ashp_subsidy_model!="custom subsidy model" else user_inputted_subsidies.set_index("Year")["Subsidy (£)"].to_dict(),
+        purchase_with_loan=ashp_purchased_with_loan,
+        loan_interest_rate=ashp_loan_interes_rate,
+    )
 
-    # ashp_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
-    #     total_lifetime_costs=ashp_lifetime_costs,
-    #     cost_column="total_lifetime_costs",
-    #     life_span=ashp_life_span 
-    # )
+    ashp_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
+         maintenance_frequency_per_year=ashp_maintenance_frequency, 
+         maintenance_cost=ashp_maintenance_cost, 
+         life_span=ashp_life_span
+    )
+
+    ashp_running_costs = cost_calculator.compute_running_cost_time_series(
+            purchase_year=installation_year,
+            life_span=ashp_life_span,
+            heating_system_efficiency=ashp_efficiency,
+            fuel_type="electricity",
+            wholesale_price_projection_scenario=wholesale_price_projection,
+            include_standing_charge=False, # in phase 1 standing charge is not included in running costs for ASHP
+            levy_rebalancing=levy_rebalancing,
+            levies_to_rebalance=levies_to_rebalance,
+            levy_rebalancing_weights=levies_rebalancing_weights,
+            include_vat=True,
+        )
+    ashp_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
+        installation_costs=ashp_upfront_costs,
+        maintenance_costs=ashp_maintenance_costs,
+        running_costs=ashp_running_costs,
+    )
+
+    ashp_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
+        total_lifetime_costs=ashp_lifetime_costs,
+        cost_column="total_lifetime_costs",
+        life_span=ashp_life_span 
+    )
     
-    # boiler_upfront_costs = cost_calculator.compute_upfront_cost(
-    #     heating_system="boiler",
-    #     purchase_year=installation_year,
-    #     life_span=ashp_life_span,
-    # )
-    # boiler_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
-    #      maintenance_frequency_per_year=boiler_maintenance_frequency, 
-    #      maintenance_cost=boiler_maintenance_cost, 
-    #      life_span=boiler_life_span
-    # )
+    boiler_upfront_costs = cost_calculator.compute_upfront_cost(
+        heating_system="boiler",
+        annual_cost_reduction = 0,
+        purchase_year=installation_year,
+        life_span=ashp_life_span,
+    )
+    boiler_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
+         maintenance_frequency_per_year=boiler_maintenance_frequency, 
+         maintenance_cost=boiler_maintenance_cost, 
+         life_span=boiler_life_span
+    )
 
-    # boiler_running_costs = cost_calculator.compute_running_cost_time_series(
-    #         purchase_year=installation_year,
-    #         life_span=boiler_life_span,
-    #         heating_system_efficiency=boiler_efficiency,
-    #         fuel_type="gas",
-    #         wholesale_price_projection_scenario=wholesale_price_projection,
-    #         include_standing_charge=False,
-    #         levy_rebalancing=levy_rebalancing,
-    #         levies_to_rebalance=["ro", "fit", "eco", "aahedc", "ncc"],
-    #         levy_rebalancing_weights={
-    #             "electricity_weight": 0,
-    #             "gas_weight": 1,
-    #             "tax_weight": 0,
-    #             "fixed_electricity_weight": 0,
-    #             "variable_electricity_weight": variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 0,
-    #             "fixed_gas_weight": 0,
-    #             "variable_gas_weight": 1-variable_electricity_weight if levy_rebalancing=="rebalance unit costs between electricity and gas" else 1,
-    #         },
-    #         include_vat=True,
-    #     )
+    boiler_running_costs = cost_calculator.compute_running_cost_time_series(
+            purchase_year=installation_year,
+            life_span=boiler_life_span,
+            heating_system_efficiency=boiler_efficiency,
+            fuel_type="gas",
+            wholesale_price_projection_scenario=wholesale_price_projection,
+            include_standing_charge=True, # in phase 1 of the project, we decided that the gas standing charge should only be included in the running costs of a gas boiler
+            levy_rebalancing=levy_rebalancing,
+            levies_to_rebalance=levies_to_rebalance,
+            levy_rebalancing_weights=levies_rebalancing_weights,
+            include_vat=True,
+        )
     
-    # boiler_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
-    #     installation_costs=boiler_upfront_costs,
-    #     maintenance_costs=boiler_maintenance_costs,
-    #     running_costs=boiler_running_costs,
-    # )
+    boiler_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
+        installation_costs=boiler_upfront_costs,
+        maintenance_costs=boiler_maintenance_costs,
+        running_costs=boiler_running_costs,
+    )
 
-    # boiler_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
-    #     total_lifetime_costs=boiler_lifetime_costs,
-    #     cost_column="total_lifetime_costs",
-    #     life_span=boiler_life_span
-    # )
+    boiler_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
+        total_lifetime_costs=boiler_lifetime_costs,
+        cost_column="total_lifetime_costs",
+        life_span=boiler_life_span
+    )
 
 
     # st.markdown("### Download data")
