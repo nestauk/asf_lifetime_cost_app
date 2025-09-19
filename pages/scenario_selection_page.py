@@ -501,24 +501,51 @@ def scenario_selection_page():
         life_span=boiler_life_span
     )
 
+    # Merging ASHP and boiler results
+    lifetime_costs = pd.merge(
+        ashp_lifetime_costs,
+        boiler_lifetime_costs,
+        suffixes=("_ashp", "_boiler"),
+    )
 
-    # st.markdown("### Download data")
+    annualised_lifetime_costs = pd.merge(
+        ashp_annualised_lifetime_costs,
+        boiler_annualised_lifetime_costs,
+        suffixes=("_ashp", "_boiler"),
+    )
+    # Filtering by archetype
+    lifetime_costs = lifetime_costs[
+        lifetime_costs.index.isin(filter_archetypes)
+    ]
+    annualised_lifetime_costs = annualised_lifetime_costs[
+        annualised_lifetime_costs.index.isin(filter_archetypes)
+    ]
 
-    # csv_annual = dummy_data.to_csv()
-    # csv_total = total_dummy_data.to_csv()
 
-    # st.download_button(
-    #     label="Download annualised costs data",
-    #     data=csv_annual,
-    #     file_name="annualised_costs_data.csv",
-    #     mime="text/csv",
-    #     icon=":material/download:",
-    # )
+    st.markdown("### Download data")
 
-    # st.download_button(
-    #     label="Download total costs data",
-    #     data=csv_total,
-    #     file_name="lifetime_costs_data.csv",
-    #     mime="text/csv",
-    #     icon=":material/download:",
-    # )
+    csv_lifetime_costs = lifetime_costs.to_csv()
+    csv_annualised_lifetime_costs = annualised_lifetime_costs.to_csv()
+    csv_ashp_running_costs = ashp_running_costs.to_csv()
+
+    st.download_button(
+        label="Download annualised lifetime costs data",
+        data=csv_annualised_lifetime_costs,
+        file_name="annualised_costs_data.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+    st.download_button(
+        label="Download lifetime costs data",
+        data=csv_lifetime_costs,
+        file_name="lifetime_costs_data.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
+    st.download_button(
+        label="Download ASHP running costs time series data",
+        data=csv_ashp_running_costs,
+        file_name="ashp_running_costs_data.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
