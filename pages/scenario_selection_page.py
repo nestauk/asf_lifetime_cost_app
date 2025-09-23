@@ -570,8 +570,7 @@ def scenario_selection_page():
     )
 
     chart_annualised = chart_annualised.properties(
-        title="Annualised lifetime costs",
-        subtitle="Total lifetime costs divided by the lifespan of the heating system",
+        title="Total lifetime costs divided by the lifespan of the heating system",
     )
     st.altair_chart(chart_annualised, use_container_width=True)
 
@@ -616,8 +615,8 @@ def scenario_selection_page():
     )
 
     chart = chart.properties(
-        title="Install, Running Costs and Subsidy",
-        subtitle="Lifetime costs of heating systems, broken down by installation costs (after subsidy), running costs, maintenance costs and loan interest (if applicable)",
+        title=["Lifetime costs of heating systems, broken down by installation costs (after subsidy),",
+        "running costs, maintenance costs and loan interest (if applicable)"],
     )
 
     st.altair_chart(chart, use_container_width=True)
