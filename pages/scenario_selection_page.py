@@ -479,12 +479,6 @@ def scenario_selection_page():
         running_costs=ashp_running_costs,
     )
 
-    ashp_annualised_lifetime_costs = cost_calculator.compute_annualised_lifetime_costs(
-        total_lifetime_costs=ashp_lifetime_costs,
-        cost_column="total_lifetime_costs",
-        life_span=ashp_life_span,
-    )
-
     boiler_upfront_costs = cost_calculator.compute_upfront_cost(
         heating_system="boiler",
         annual_cost_reduction=0,
@@ -517,66 +511,29 @@ def scenario_selection_page():
     )
 
     ashp_lifetime_costs["technology"] = "ASHP"
+    ashp_lifetime_costs["life_span"] = ashp_life_span
     boiler_lifetime_costs["technology"] = "Gas boiler"
-    ashp_lifetime_costs["annualised_lifetime_cost"] = (
-        ashp_lifetime_costs["total_lifetime_costs"] / ashp_life_span
-    )
-    boiler_lifetime_costs["annualised_lifetime_cost"] = (
-        boiler_lifetime_costs["total_lifetime_costs"] / boiler_life_span
-    )
+    boiler_lifetime_costs["life_span"] = boiler_life_span
 
     # Merging ASHP and boiler results
     lifetime_costs = pd.concat(
         [ashp_lifetime_costs, boiler_lifetime_costs]
     ).reset_index()
 
+    lifetime_costs["installation_costs_after_subsidy"] = (
+        lifetime_costs["installation_costs"]
+        - lifetime_costs["subsidy_value"]
+    )
+    lifetime_costs.drop(
+        columns=["installation_costs", "subsidy_value"], inplace=True
+    )
+
     lifetime_costs_selected_archetypes = lifetime_costs[
         lifetime_costs["archetype_label"].isin(filter_archetypes)
     ]
 
-    lifetime_costs_selected_archetypes["installation_costs_after_subsidy"] = (
-        lifetime_costs_selected_archetypes["installation_costs"]
-        - lifetime_costs["subsidy_value"]
-    )
-    lifetime_costs_selected_archetypes.drop(
-        columns=["installation_costs", "subsidy_value"], inplace=True
-    )
-
-    df_annualised = lifetime_costs_selected_archetypes.melt(
-        id_vars=["archetype_label", "technology"],
-        value_vars=["annualised_lifetime_cost"],
-        var_name="cost_type",
-        value_name="cost",
-    )
-
-    chart_annualised = (
-        alt.Chart(df_annualised)
-        .mark_bar()
-        .encode(
-            y=alt.Y("technology:N", axis=alt.Axis(title=None)),
-            x=alt.X("sum(cost):Q", axis=alt.Axis(title="£ per year")),
-            color=alt.Color(
-                "cost_type:N",
-                scale=alt.Scale(
-                    domain=["annualised_lifetime_cost"], range=[NESTA_COLOURS[0]]
-                ),
-            ),
-        )
-        .facet(
-            row=alt.Row(
-                "archetype_label:N", header=alt.Header(labelAngle=0, labelAlign="left")
-            )
-        )
-    )
-
-    chart_annualised = chart_annualised.properties(
-        title="Total lifetime costs divided by the lifespan of the heating system",
-    )
-    st.altair_chart(chart_annualised, use_container_width=True)
-
-    # Reshape to long format for Install + Running
     df_comparing_costs = lifetime_costs_selected_archetypes.melt(
-        id_vars=["archetype_label", "technology"],
+        id_vars=["archetype_label", "technology", "life_span"],
         value_vars=[
             "lifetime_running_costs",
             "installation_costs_after_subsidy",
@@ -587,7 +544,6 @@ def scenario_selection_page():
         value_name="cost",
     )
 
-    # --- Base stacked bars (Install + Running) ---
     chart = (
         alt.Chart(df_comparing_costs)
         .mark_bar()
@@ -614,12 +570,30 @@ def scenario_selection_page():
         )
     )
 
-    chart = chart.properties(
-        title=["Lifetime costs of heating systems, broken down by installation costs (after subsidy),",
-        "running costs, maintenance costs and loan interest (if applicable)"],
+    toggle_total_lifetime_costs = st.toggle(
+        label="Show total lifetime costs instead of annualised lifetime costs",
+        value=False,
+        key="toggle_total_lifetime_costs",
+        help="Toggle between annualised lifetime costs and total lifetime costs",
     )
 
-    st.altair_chart(chart, use_container_width=True)
+    if toggle_total_lifetime_costs:
+        title = ["Total lifetime costs of heating systems, broken down by installation costs (after subsidy),",
+        " running costs, maintenance costs and loan interest (if applicable)"]
+    else:
+        df_comparing_costs["cost"] = (
+            df_comparing_costs["cost"] / df_comparing_costs["life_span"]
+        )
+        title = ["Annualised lifetime costs of heating systems, broken down by installation costs (after subsidy),",
+        " running costs, maintenance costs and loan interest (if applicable)"]
+
+    chart = chart.properties(
+        title=title
+    )
+
+    col7, cost_component_chart_col, col8 = st.columns([1, 5, 1])
+    with cost_component_chart_col:
+        st.altair_chart(chart, use_container_width=True)
 
     st.markdown("### Download data")
 
