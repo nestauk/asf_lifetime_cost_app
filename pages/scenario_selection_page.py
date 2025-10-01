@@ -27,12 +27,21 @@ def scenario_selection_page():
     """
 
     st.markdown("# Lifetime costs: scenario selection")
+    st.markdown(
+        """
+        This page allows you to select a predefined scenario or build your own custom scenario by defining various parameters.
+        Once you have selected or built a scenario, the lifetime costs of air source heat pumps (ASHP) and gas boilers will be calculated and compared.
+
+        The results will be displayed in a series of charts and tables, allowing you to see how the lifetime costs of ASHPs compare to gas boilers for different property archetypes.
+        You can also filter the results by property archetype and download the data for further analysis.
+        """
+    )
 
     st.markdown("### Select a predefined scenario or build your own")
     st.write(
         """
              If you select a predefined scenario, the parameters will be set automatically. If you choose to build a custom scenario, start by naming it.
-             Below you can also select the installation year and cost decile for your results. When you build a custom scenario, you can then define other the parameters in more detail.
+             Below you can also select the installation year and air source heat pump cost decile for your results. When building a custom scenario, you can then define other the parameters in more detail.
              """
     )
     scenario_names = [scenarios[key]["name"] for key in scenarios.keys()]
@@ -49,6 +58,7 @@ def scenario_selection_page():
         )
 
     with st.expander("📅 Expand to select installation year and cost decile"):
+        st.markdown("Installation year is the year the heating system purchased and installed. Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost.")
         installation_year_col, decile_col = st.columns(2)
 
         with installation_year_col:
@@ -222,35 +232,12 @@ def scenario_selection_page():
                             st.write(
                                 "Edit the subsidy values below (£) for each year by double-clicking on the cell."
                             )
-                            column_config = {
-                                "Year": st.column_config.NumberColumn(
-                                    "Year",
-                                    disabled=True,  # make the Year column non-editable
-                                ),
-                                "Subsidy (£)": st.column_config.NumberColumn(
-                                    "Subsidy (£)", min_value=0, max_value=20000
-                                ),
-                            }
-
-                            subsidies_table = pd.DataFrame(
-                                {
-                                    "Year": list(
-                                        range(
-                                            installation_year,
-                                            installation_year
-                                            + config.life_span_default["ashp"]
-                                            + 1,
-                                        )
-                                    ),
-                                    "Subsidy (£)": 7500,
-                                }
-                            )
-
-                            user_inputted_subsidies = st.data_editor(
-                                subsidies_table,
-                                use_container_width=True,
-                                column_config=column_config,
-                                key="custom_ashp_subsidy_input",
+                            subsidy_value = st.number_input(
+                                label=f"Subsidy value for year {installation_year} in £",
+                                min_value=0,
+                                max_value=15000,
+                                value=7500,
+                                step=100,
                             )
                 with st.expander("⚡ Wholesale price projection"):
                     col3, wholesale_price_proj_col, col4 = st.columns([1, 4, 1])
@@ -353,6 +340,7 @@ def scenario_selection_page():
 
                         """
             )
+            st.markdown("To know more about these parameters, visit the 'About the app' page.")
 
     name = (
         selected_scenario
@@ -366,12 +354,25 @@ def scenario_selection_page():
 
     cost_calculator = LifetimeCostCalculator()
 
+    archetype_name_mapping = {
+        "pre_1950_flat": "Pre-1950 flat",
+        "post_1950_flat": "Post-1950 flat",
+        "pre_1950_semi_terraced_house": "Pre-1950 semi/terraced house",
+        "post_1950_semi_terraced_house": "Post-1950 semi/terraced house",
+        "pre_1950_bungalow": "Pre-1950 bungalow",
+        "post_1950_bungalow": "Post-1950 bungalow",
+        "pre_1950_detached_house": "Pre-1950 detached house",
+        "post_1950_detached_house": "Post-1950 detached house",
+    }
+
+    mapped_archetype_options = [archetype_name_mapping[x] for x in cost_calculator.property_archetypes]
+
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
     with filter_archetypes_col:
         filter_archetypes = st.multiselect(
             label="Select or de-select archetypes to filter the results",
-            options=cost_calculator.property_archetypes,
-            default=cost_calculator.property_archetypes,
+            options=mapped_archetype_options,
+            default=mapped_archetype_options,
             key="filter_archetypes_input",
             help="Filter the results by archetype",
         )
@@ -449,7 +450,7 @@ def scenario_selection_page():
         subsidy_model_or_input_values=(
             ashp_subsidy_model
             if ashp_subsidy_model != "custom subsidy model"
-            else user_inputted_subsidies.set_index("Year")["Subsidy (£)"].to_dict()
+            else {installation_year: subsidy_value}
         ),
         purchase_with_loan=ashp_purchased_with_loan,
         loan_interest_rate=ashp_loan_interes_rate,
@@ -528,6 +529,47 @@ def scenario_selection_page():
         columns=["installation_costs", "subsidy_value"], inplace=True
     )
 
+    lifetime_costs["archetype_label"] = lifetime_costs["archetype_label"].map(
+        archetype_name_mapping
+    )
+
+    # random number of properties for testing purposes
+    number_of_properties = {
+        "Pre-1950 flat": 1254321,
+        "Post-1950 flat": 2876543,
+        "Pre-1950 semi/terraced house": 4132890,
+        "Post-1950 semi/terraced house": 5789123,
+        "Pre-1950 bungalow": 345678,
+        "Post-1950 bungalow": 987654,
+        "Pre-1950 detached house":  1567890,
+        "Post-1950 detached house": 3210987,
+    }
+
+    lifetime_costs["number_of_properties"] = lifetime_costs["archetype_label"].map(number_of_properties)
+    # Adding weighted average archetype
+    weighted_lifetime_costs = lifetime_costs.groupby("technology").apply(
+        lambda x: pd.Series(
+            {
+                "lifetime_running_costs": (x["lifetime_running_costs"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
+                "installation_costs_after_subsidy": (x["installation_costs_after_subsidy"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
+                "loan_interest": (x["loan_interest"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
+                "lifetime_maintenance_costs": (x["lifetime_maintenance_costs"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
+                "number_of_properties": x["number_of_properties"].sum(),
+            }
+        )
+    ).reset_index()
+    weighted_lifetime_costs["archetype_label"] = "Representative archetype (weighted average)"
+    weighted_lifetime_costs["life_span"] = (
+        lifetime_costs_selected_archetypes["life_span"]
+        .mean()
+        .round()
+        .astype(int)
+    )
+    lifetime_costs_selected_archetypes = pd.concat(
+        [lifetime_costs_selected_archetypes, weighted_lifetime_costs]
+    ).reset_index(drop=True)
+
+
     lifetime_costs_selected_archetypes = lifetime_costs[
         lifetime_costs["archetype_label"].isin(filter_archetypes)
     ]
@@ -544,6 +586,39 @@ def scenario_selection_page():
         value_name="cost",
     )
 
+    cost_type_name_mapping = {
+        "lifetime_maintenance_costs": "Maintenance costs",
+        "loan_interest": "Loan interest",
+        "installation_costs_after_subsidy": "Installation costs (after subsidy)",
+        "lifetime_running_costs": "Running costs",
+
+    }
+
+    df_comparing_costs["cost_type"] = df_comparing_costs["cost_type"].map(cost_type_name_mapping)
+
+    # Convert column to ordered categorical
+    df_comparing_costs["archetype_label"] = pd.Categorical(
+        df_comparing_costs["archetype_label"],
+        categories=mapped_archetype_options,
+        ordered=True
+    )
+    df_comparing_costs["cost_type"] = pd.Categorical(
+        df_comparing_costs["cost_type"],
+        categories=list(cost_type_name_mapping.values()),
+        ordered=True
+    )
+    st.write(cost_type_name_mapping.values())
+    df_comparing_costs = df_comparing_costs.sort_values(by=["archetype_label", "cost"])
+    st.dataframe(df_comparing_costs)
+
+    cost_component_order = {
+        "Maintenance costs":0,
+        "Loan interest":1,
+        "Installation costs (after subsidy)":2,
+        "Running costs":3,
+    }
+    df_comparing_costs["cost_type_order"] = df_comparing_costs["cost_type"].map(cost_component_order)
+
     chart = (
         alt.Chart(df_comparing_costs)
         .mark_bar()
@@ -552,20 +627,26 @@ def scenario_selection_page():
             x=alt.X("sum(cost):Q", axis=alt.Axis(title="£")),
             color=alt.Color(
                 "cost_type:N",
+                title="Cost component",
                 scale=alt.Scale(
-                    domain=[
-                        "lifetime_running_costs",
-                        "installation_costs_after_subsidy",
-                        "loan_interest",
-                        "lifetime_maintenance_costs",
+                    domain=cost_type_name_mapping.values(),
+                    range=[
+                        NESTA_COLOURS[10],
+                        NESTA_COLOURS[2],
+                        NESTA_COLOURS[1],
+                        NESTA_COLOURS[0],
                     ],
-                    range=NESTA_COLOURS[:5],
                 ),
             ),
+            order=alt.Order(
+                "cost_type_order:N",
+                sort="descending"
+            )
         )
         .facet(
             row=alt.Row(
-                "archetype_label:N", header=alt.Header(labelAngle=0, labelAlign="left")
+                "archetype_label:N", 
+                header=alt.Header(labelAngle=0, labelAlign="left")
             )
         )
     )
@@ -591,7 +672,7 @@ def scenario_selection_page():
         title=title
     )
 
-    col7, cost_component_chart_col, col8 = st.columns([1, 5, 1])
+    col7, cost_component_chart_col, col8 = st.columns([1, 8, 1])
     with cost_component_chart_col:
         st.altair_chart(chart, use_container_width=True)
 
