@@ -645,7 +645,7 @@ def scenario_selection_page():
             row=alt.Row(
                 "archetype_label:N", 
                 header=alt.Header(labelAngle=0, labelAlign="left"),
-                title=None
+                title=None,
             )
         )
     )
@@ -669,6 +669,14 @@ def scenario_selection_page():
 
     chart = chart.properties(
         title=title
+    ).configure_title(
+        fontSize=20
+    ).configure_axis(
+        labelFontSize=14, titleFontSize=14
+    ).configure_legend(
+        labelFontSize=14, titleFontSize=14
+    ).configure_header(
+        labelFontSize=14  # <-- changes facet row labels
     )
 
     col7, cost_component_chart_col, col8 = st.columns([1, 8, 1])
