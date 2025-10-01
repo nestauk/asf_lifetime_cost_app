@@ -371,8 +371,8 @@ def scenario_selection_page():
     with filter_archetypes_col:
         filter_archetypes = st.multiselect(
             label="Select or de-select archetypes to filter the results",
-            options=mapped_archetype_options,
-            default=mapped_archetype_options,
+            options=mapped_archetype_options + ["Weighted average archetype"],
+            default=mapped_archetype_options + ["Weighted average archetype"],
             key="filter_archetypes_input",
             help="Filter the results by archetype",
         )
@@ -558,15 +558,15 @@ def scenario_selection_page():
             }
         )
     ).reset_index()
-    weighted_lifetime_costs["archetype_label"] = "Representative archetype (weighted average)"
+    weighted_lifetime_costs["archetype_label"] = "Weighted average archetype"
     weighted_lifetime_costs["life_span"] = (
-        lifetime_costs_selected_archetypes["life_span"]
+        lifetime_costs["life_span"]
         .mean()
         .round()
         .astype(int)
     )
-    lifetime_costs_selected_archetypes = pd.concat(
-        [lifetime_costs_selected_archetypes, weighted_lifetime_costs]
+    lifetime_costs = pd.concat(
+        [lifetime_costs, weighted_lifetime_costs]
     ).reset_index(drop=True)
 
 
@@ -599,7 +599,7 @@ def scenario_selection_page():
     # Convert column to ordered categorical
     df_comparing_costs["archetype_label"] = pd.Categorical(
         df_comparing_costs["archetype_label"],
-        categories=mapped_archetype_options,
+        categories=mapped_archetype_options + ["Weighted average archetype"],
         ordered=True
     )
     df_comparing_costs["cost_type"] = pd.Categorical(
@@ -607,13 +607,11 @@ def scenario_selection_page():
         categories=list(cost_type_name_mapping.values()),
         ordered=True
     )
-    st.write(cost_type_name_mapping.values())
     df_comparing_costs = df_comparing_costs.sort_values(by=["archetype_label", "cost"])
-    st.dataframe(df_comparing_costs)
 
     cost_component_order = {
-        "Maintenance costs":0,
-        "Loan interest":1,
+        "Loan interest":0,
+        "Maintenance costs":1,
         "Installation costs (after subsidy)":2,
         "Running costs":3,
     }
@@ -646,7 +644,8 @@ def scenario_selection_page():
         .facet(
             row=alt.Row(
                 "archetype_label:N", 
-                header=alt.Header(labelAngle=0, labelAlign="left")
+                header=alt.Header(labelAngle=0, labelAlign="left"),
+                title=None,
             )
         )
     )
@@ -670,6 +669,14 @@ def scenario_selection_page():
 
     chart = chart.properties(
         title=title
+    ).configure_title(
+        fontSize=20
+    ).configure_axis(
+        labelFontSize=14, titleFontSize=14
+    ).configure_legend(
+        labelFontSize=14, titleFontSize=14
+    ).configure_header(
+        labelFontSize=14  # <-- changes facet row labels
     )
 
     col7, cost_component_chart_col, col8 = st.columns([1, 8, 1])
