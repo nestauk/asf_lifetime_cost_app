@@ -33,254 +33,101 @@ def comparing_scenarios_page():
         """
     )
 
-    with st.expander("📅 Selet the installation year and cost decile"):
-        st.markdown("Installation year is the year the heating system purchased and installed. Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost.")
-        installation_year_col, decile_col = st.columns(2)
+    with st.expander("📅 Selet the cost decile"):
+        st.markdown("Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost.")
+        cost_decile = st.selectbox(
+            label="Select the cost decile (50 corresponds to the median)",
+            options=range(10, 100, 10),
+            index=4,
+            key="income_decile_input",
+            help="Select the cost decile, where 50 corresponds to the median.",
+        )
 
-        with installation_year_col:
-            installation_year = st.slider(
-                label="Select the installation year",
-                min_value=2025,
-                max_value=2035,
-                value=2025,
-                step=1,
-                key="custom_installation_year_input",
-                help="The year the heating system is installed",
-            )
+    results = pd.read_csv("s3://asf-lifetime-cost-model/outputs/cost_dif_by_year_decile_" + str(cost_decile) + ".csv")
+    results.rename(columns={"Unnamed: 0": "installation_year"}, inplace=True)
+    results = results.melt(
+        id_vars=["installation_year"],
+        var_name="scenario",
+        value_name="cost_difference_ashp_minus_boiler"
+    )    
+    scenarios_list = results["scenario"].unique().tolist()
 
-        with decile_col:
-            cost_decile = st.selectbox(
-                label="Select the cost decile (50 corresponds to the median)",
-                options=range(10, 100, 10),
-                index=4,
-                key="income_decile_input",
-                help="Select the cost decile, where 50 corresponds to the median.",
-            )
+    toggle_total_lifetime_costs = st.toggle(
+        label="Show total lifetime costs instead of annualised lifetime costs",
+        value=False,
+        key="toggle_total_lifetime_costs",
+        help="Toggle between annualised lifetime costs and total lifetime costs",
+    )
 
+    if toggle_total_lifetime_costs:
+        title = ["Total difference between air source heat pumps and gas boilers by installation year and scenario for average household",
+                 "(values below zero indicate air source heat pumps are cheaper)"]
+    else:
+        results["cost_difference_ashp_minus_boiler"] = (
+            results["cost_difference_ashp_minus_boiler"] / 15  # annualise over 15 years
+        )
+        title = ["Annual difference between air source heat pumps and gas boilers by installation year and scenario for average household",
+                 "(values below zero indicate air source heat pumps are cheaper))"]
+    line_chart = (
+        alt.Chart(results)
+        .mark_line(point=True, strokeWidth=3)
+        .encode(
+            x=alt.X("installation_year:O", title="Installation year"),
+            y=alt.Y("cost_difference_ashp_minus_boiler:Q", title=""),
+            color=alt.Color("scenario:N", title="Scenario", scale=alt.Scale(domain=scenarios_list, range=NESTA_COLOURS)),
+            tooltip=[
+                alt.Tooltip("installation_year:O", title="Installation year"),
+                alt.Tooltip("scenario:N", title="Scenario"),
+                alt.Tooltip("cost_difference_ashp_minus_boiler:Q", title="Cost difference (heat pump - boiler)", format=".2f"),
+            ],
+        )
+    )
 
-    cost_calculator = LifetimeCostCalculator()
+    # Shaded area for y < 0
+    min_value = results["cost_difference_ashp_minus_boiler"].min()
 
-    archetype_name_mapping = {
-        "pre_1950_flat": "Pre-1950 flat",
-        "post_1950_flat": "Post-1950 flat",
-        "pre_1950_semi_terraced_house": "Pre-1950 semi/terraced house",
-        "post_1950_semi_terraced_house": "Post-1950 semi/terraced house",
-        "pre_1950_bungalow": "Pre-1950 bungalow",
-        "post_1950_bungalow": "Post-1950 bungalow",
-        "pre_1950_detached_house": "Pre-1950 detached house",
-        "post_1950_detached_house": "Post-1950 detached house",
-    }
+    # Create dummy DataFrame covering the x-axis
+    area_df = pd.DataFrame({
+        "installation_year": results["installation_year"].unique(),
+        "y": [min_value] * len(results["installation_year"].unique())
+    })
 
-    mapped_archetype_options = [archetype_name_mapping[x] for x in cost_calculator.property_archetypes]
+    area_below_zero = (
+        alt.Chart(area_df)
+        .mark_area(color="lightgray", opacity=0.3)
+        .encode(
+            x=alt.X("installation_year:O", title="Installation year"),
+            y=alt.Y("y:Q", title=""),
+            y2=alt.Y2(value=0)
+        )
+    )
+    label = (
+        alt.Chart(pd.DataFrame({"installation_year": [results["installation_year"].iloc[0]], "y": [-100]}))
+        .mark_text(text="Air source heat pumps are cheaper", fontSize=16, color="grey", align="left")
+        .encode(
+            x=alt.X("installation_year:O"),
+            y=alt.Y("y:Q"),
+        )
+    )
+
+    # Combine charts
+    final_chart = (area_below_zero + line_chart + label).properties(
+            width=800,
+            height=500,
+            title=title
+        ).configure_title(fontSize=20
+        ).configure_axis(labelFontSize=16, titleFontSize=16
+        ).configure_legend(labelFontSize=16, titleFontSize=16)
     
-    for scenario in scenarios.keys():
-        scenario_info = scenarios[scenario]
-        ashp_life_span = config.life_span_default["ashp"]
-        boiler_life_span = config.life_span_default["boiler"]
-        ashp_maintenance_cost = config.maintenance_costs_default["ashp"]
-        boiler_maintenance_cost = config.maintenance_costs_default["boiler"]
-        ashp_maintenance_frequency = 1.0
-        boiler_maintenance_frequency = 1.0
-        ashp_efficiency = (
-            3.0
-            if scenario_info["ashp_scop"] == "reference"
-            else 3.5 if scenario_info["ashp_scop"] == "high" else 2.5
-        )
-        boiler_efficiency = config.boiler_efficiency_default
-        ashp_purchased_with_loan = (
-            "Yes" if scenario_info["purchasing_with_loans"] else "No"
-        )
-        if ashp_purchased_with_loan == "Yes":
-            ashp_loan_interes_rate = scenario_info["loan_interest_rate"]
-        else:
-            ashp_loan_interes_rate = 0
+    st.altair_chart(final_chart, use_container_width=True)
 
-        ashp_subsidy_model = scenario_info["ashp_subsidy"]
-
-        wholesale_price_projection = scenario_info["wholesale_price_projection"]
-
-        levy_rebalancing = scenario_info["levy_rebalancing"]
-
-        # Processing inputs before computations
-        if ashp_purchased_with_loan == "Yes":
-            ashp_purchased_with_loan = True
-            ashp_loan_interes_rate = config.loan_interest_rate_options.get(
-                ashp_loan_interes_rate
-            )
-        else:
-            ashp_purchased_with_loan = False
-            ashp_loan_interes_rate = 0.0
-
-        if levy_rebalancing == "no rebalancing (current price cap)":
-            levy_rebalancing = False
-            levies_to_rebalance = None
-            levies_rebalancing_weights = None
-        elif levy_rebalancing == "remove all electricity levies to taxation":
-            levy_rebalancing = True
-            levies_to_rebalance = ["ro", "fit", "eco", "whd", "aahedc", "ncc"]
-            levies_rebalancing_weights = {
-                "electricity_weight": 0,
-                "gas_weight": 1,
-                "tax_weight": 0,
-                "fixed_electricity_weight": 0,
-                "variable_electricity_weight": 0,
-                "fixed_gas_weight": 0,
-                "variable_gas_weight": 1,
-            }
-        elif levy_rebalancing == "rebalance RO and FiT from electricity to gas":
-            levy_rebalancing = True
-            levies_to_rebalance = ["ro", "fit"]
-            levies_rebalancing_weights = {
-                "electricity_weight": 0,
-                "gas_weight": 1,
-                "tax_weight": 0,
-                "fixed_electricity_weight": 0,
-                "variable_electricity_weight": 0,
-                "fixed_gas_weight": 0,
-                "variable_gas_weight": 1,
-            }
-        else:
-            ValueError("Levy rebalancing option not recognised")
-
-
-        results = {}
-
-        ashp_upfront_costs = cost_calculator.compute_upfront_cost(
-        heating_system="ashp",
-        annual_cost_reduction=0.05,
-        purchase_year=installation_year,
-        life_span=ashp_life_span,
-        decile=cost_decile,
-        subsidy_model_or_input_values=
-            ashp_subsidy_model,
-        purchase_with_loan=ashp_purchased_with_loan,
-        loan_interest_rate=ashp_loan_interes_rate,
+    st.markdown("### Download data")
+    csv = results.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name=f'scenario_comparison_cost_decile_{cost_decile}.csv',
+        mime='text/csv',
+        icon=":material/download:",
     )
 
-    ashp_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
-        maintenance_frequency_per_year=ashp_maintenance_frequency,
-        maintenance_cost=ashp_maintenance_cost,
-        life_span=ashp_life_span,
-    )
-
-    ashp_running_costs = cost_calculator.compute_running_cost_time_series(
-        purchase_year=installation_year,
-        life_span=ashp_life_span,
-        heating_system_efficiency=ashp_efficiency,
-        fuel_type="electricity",
-        wholesale_price_projection_scenario=wholesale_price_projection,
-        include_standing_charge=False,  # in phase 1 standing charge is not included in running costs for ASHP
-        levy_rebalancing=levy_rebalancing,
-        levies_to_rebalance=levies_to_rebalance,
-        levy_rebalancing_weights=levies_rebalancing_weights,
-        include_vat=True,
-    )
-    ashp_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
-        installation_costs=ashp_upfront_costs,
-        maintenance_costs=ashp_maintenance_costs,
-        running_costs=ashp_running_costs,
-    )
-
-    boiler_upfront_costs = cost_calculator.compute_upfront_cost(
-        heating_system="boiler",
-        annual_cost_reduction=0,
-        purchase_year=installation_year,
-        life_span=ashp_life_span,
-    )
-    boiler_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
-        maintenance_frequency_per_year=boiler_maintenance_frequency,
-        maintenance_cost=boiler_maintenance_cost,
-        life_span=boiler_life_span,
-    )
-
-    boiler_running_costs = cost_calculator.compute_running_cost_time_series(
-        purchase_year=installation_year,
-        life_span=boiler_life_span,
-        heating_system_efficiency=boiler_efficiency,
-        fuel_type="gas",
-        wholesale_price_projection_scenario=wholesale_price_projection,
-        include_standing_charge=True,  # in phase 1 of the project, we decided that the gas standing charge should only be included in the running costs of a gas boiler
-        levy_rebalancing=levy_rebalancing,
-        levies_to_rebalance=levies_to_rebalance,
-        levy_rebalancing_weights=levies_rebalancing_weights,
-        include_vat=True,
-    )
-
-    boiler_lifetime_costs = cost_calculator.compute_total_lifetime_costs(
-        installation_costs=boiler_upfront_costs,
-        maintenance_costs=boiler_maintenance_costs,
-        running_costs=boiler_running_costs,
-    )
-
-    ashp_lifetime_costs["technology"] = "ASHP"
-    ashp_lifetime_costs["life_span"] = ashp_life_span
-    boiler_lifetime_costs["technology"] = "Gas boiler"
-    boiler_lifetime_costs["life_span"] = boiler_life_span
-
-    # Merging ASHP and boiler results
-    lifetime_costs = pd.concat(
-        [ashp_lifetime_costs, boiler_lifetime_costs]
-    ).reset_index()
-
-    lifetime_costs["installation_costs_after_subsidy"] = (
-        lifetime_costs["installation_costs"]
-        - lifetime_costs["subsidy_value"]
-    )
-    lifetime_costs.drop(
-        columns=["installation_costs", "subsidy_value"], inplace=True
-    )
-
-    lifetime_costs["archetype_label"] = lifetime_costs["archetype_label"].map(
-        archetype_name_mapping
-    )
-
-    lifetime_costs_selected_archetypes = lifetime_costs[
-        lifetime_costs["archetype_label"].isin(filter_archetypes)
-    ]
-
-    df_comparing_costs = lifetime_costs_selected_archetypes.melt(
-        id_vars=["archetype_label", "technology", "life_span"],
-        value_vars=[
-            "lifetime_running_costs",
-            "installation_costs_after_subsidy",
-            "loan_interest",
-            "lifetime_maintenance_costs",
-        ],
-        var_name="cost_type",
-        value_name="cost",
-    )
-
-    cost_type_name_mapping = {
-        "lifetime_maintenance_costs": "Maintenance costs",
-        "loan_interest": "Loan interest",
-        "installation_costs_after_subsidy": "Installation costs (after subsidy)",
-        "lifetime_running_costs": "Running costs",
-
-    }
-
-    df_comparing_costs["cost_type"] = df_comparing_costs["cost_type"].map(cost_type_name_mapping)
-
-    results[scenario] = df_comparing_costs
-
-    del df_comparing_costs
-
-
-    col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
-    with filter_archetypes_col:
-        filter_archetypes = st.multiselect(
-            label="Select or de-select archetypes to filter the results",
-            options=mapped_archetype_options,
-            default=mapped_archetype_options,
-            key="filter_archetypes_input",
-            help="Filter the results by archetype",
-        )
-
-    col3, filter_scenario_col, col4 = st.columns([1, 4, 1])
-    with filter_scenario_col:
-        selected_scenarios = st.multiselect(
-            label="Select or de-select scenarios to filter the results",
-            options=list(scenarios.keys()),
-            default=list(scenarios.keys()),
-            key="filter_scenario_input",
-            help="Filter the results by scenario",
-        )
