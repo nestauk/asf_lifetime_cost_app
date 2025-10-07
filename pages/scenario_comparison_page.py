@@ -9,11 +9,6 @@ import pandas as pd
 
 # Local imports
 from config.fonts_setup import nestafont, NESTA_COLOURS
-from config.scenarios import scenarios
-from config import config
-from asf_lifetime_cost_model.pipeline.lifetime_cost_calculator import (
-    LifetimeCostCalculator,
-)
 
 # Setting up themes and fonts
 alt.themes.register("nestafont", nestafont)
@@ -27,9 +22,7 @@ def comparing_scenarios_page():
     st.markdown("# Lifetime costs: comparing scenarios")
     st.markdown(
         """
-        This page allows you to compare the lifetime costs of boilers and air source heat pumps across different pre-set scenarios and property archetypes.
-
-        You can also filter by scenario and property archetype.
+        This page allows you to compare the lifetime costs of boilers and air source heat pumps across different pre-set scenarios for an average household.
         """
     )
 
@@ -43,6 +36,8 @@ def comparing_scenarios_page():
             help="Select the cost decile, where 50 corresponds to the median.",
         )
 
+    st.markdown("<MISSING: TEXT EXPLAINING PLOT BELOW, e.g. the impact of subsidy trajectories and levy rebalancing in the results.>")
+
     results = pd.read_csv("s3://asf-lifetime-cost-model/outputs/cost_dif_by_year_decile_" + str(cost_decile) + ".csv")
     results.rename(columns={"Unnamed: 0": "installation_year"}, inplace=True)
     results = results.melt(
@@ -52,6 +47,7 @@ def comparing_scenarios_page():
     )    
     scenarios_list = results["scenario"].unique().tolist()
 
+    st.markdown("As default, the chart shows annualised lifetime costs, i.e. the average yearly cost over the lifetime of the heating system. You can toggle to see total lifetime costs instead.")
     toggle_total_lifetime_costs = st.toggle(
         label="Show total lifetime costs instead of annualised lifetime costs",
         value=False,
@@ -67,7 +63,7 @@ def comparing_scenarios_page():
             results["cost_difference_ashp_minus_boiler"] / 15  # annualise over 15 years
         )
         title = ["Annual difference between air source heat pumps and gas boilers by installation year and scenario for average household",
-                 "(values below zero indicate air source heat pumps are cheaper))"]
+                 "(values below zero indicate air source heat pumps are cheaper)"]
     line_chart = (
         alt.Chart(results)
         .mark_line(point=True, strokeWidth=3)
