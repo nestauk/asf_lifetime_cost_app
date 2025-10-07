@@ -2,7 +2,6 @@
 Data and methodology page.
 """
 # Package imports
-import pandas as pd
 import streamlit as st
 
 # Local imports
@@ -26,7 +25,7 @@ def about_data_page():
                 | Scenario            | SCOP | Subsidy model  | ASHP annual cost decrease | Purchasing with loans  | Loan interest rate | Wholesale price projection                                | Levy rebalancing                              | 
                 |---------------------|------|----------------|---------------------------|------------------------|--------------------|-----------------------------------------------------------|-----------------------------------------------|
                 | Baseline            | 3.0  | Zero from 2028 | 1%                        | Yes                    | 5%                 | Reference                                                 | No rebalancing                                |
-                | High innovation     | 3.5  | Fast stepdown  | 1%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
+                | High innovation     | 3.5  | Fast stepdown  | 5%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
                 | Cheaper electricity | 3.0  | Fast stepdown  | 1%                        | Yes                    | 5%                 | Reference for gas, Low fossil fuel prices for electricity | Rebalance RO and FiT from electricity to gas  |
                 | High subsidy        | 3.5  | High           | 1%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
                 
@@ -44,14 +43,14 @@ def about_data_page():
 
     with st.expander("Total lifetime costs"):
         # Lifetime cost calculations
-        st.markdown("""
+        st.markdown(f"""
                     **Total lifetime cost**: This is the total cost of owning a heating system over its entire lifetime.
                     
                     Total lifetime cost [£] = Upfront costs [£] + Maintenance costs over lifetime [£] + Running costs over lifetime [£]
 
                     **Annualised lifetime cost**: This is the lifetime cost averaged over the heating system's lifetime.
 
-                    Annualised lifetime cost [£/year] = Total lifetime cost [£] / Lifespan [years]
+                    Annualised lifetime cost [£/year] = Total lifetime cost [£] / <span style='color:{nesta_blue};'>Lifespan</span> [years]
 
                     **Time series breakdown of total cost over the heating system's lifetime**: This is the total cost of having that heating system in each year of its lifetime. This cost will be different for each year of its lifetime.
 
@@ -61,14 +60,14 @@ def about_data_page():
                     """)
         
     with st.expander("Upfront costs"):
-        st.markdown("""
+        st.markdown(f"""
             **Adjusting installation cost based on year of purchase**:
             
             For each year:
                     
-            Cost reduction = (1 - annual_cost_reduction) * Cost reduction in previous year
+            Cost reduction = (1 - <span style='color:{nesta_blue};'>annual cost reduction rate</span>) * Cost reduction in previous year
                     
-            where annual_cost_reduction is how much we expect cost to reduce annualy e.g. 0.01 if 1% reduction expected
+            where span style='color:{nesta_blue};'>annual cost reduction rate</span> is how much we expect cost to reduce annualy e.g. 0.01 if 1% reduction expected
                     
             Adjusted installation cost [£] = Installation cost x cost reduction 
             
@@ -76,8 +75,9 @@ def about_data_page():
             
             Loan ammount =  Adjusted installation cost - Subsidy available
                     
-            Annual loan payment = (Loan ammount * interest rate) / (1 - ((1 + interest rate) ** -lifespan))
-            Loan repayment value = Annual loan payment * lifespan
+            Annual loan payment = (Loan ammount x <span style='color:{nesta_blue};'>interest rate</span>) / (1 - ((1 + <span style='color:{nesta_blue};'>interest rate</span>) ** -<span style='color:{nesta_blue};'>lifespan/span>))
+            
+            Loan repayment value = Annual loan payment x <span style='color:{nesta_blue};'>lifespan/span>
                     
             **Upfront costs over lifetime**:
                     
@@ -92,14 +92,14 @@ def about_data_page():
 
                 **Lifetime maintenance cost**: This is the total cost of maintaining the heating system over its entire lifetime.
 
-                Lifetime maintenance cost = Annual maintenance cost x Number of years in lifetime
+                Lifetime maintenance cost = Annual maintenance cost x <span style='color:{nesta_blue};'>lifespan/span>
                     """,
     unsafe_allow_html=True)
         
     with st.expander("Running costs"):
         st.markdown(f"""    
                 **Wholesale price projections scenario**: 
-                In the custom scenario, the user can select any of the three DESNZ wholesale price projection models: Reference, Low Fossil Fuel Prices or High Fossil Fuel Prices.
+                When building a custom scenario, the user can select any of the three DESNZ wholesale price projection models: Reference, Low Fossil Fuel Prices or High Fossil Fuel Prices.
                 These projections are used to estimate the future cost of electricity and gas in each year of the heating system's lifetime.
                     
                 **Model the gas and electricity tariff (price cap) for each year of the heating system's lifetime**: Based on the heating system's purchase year and number of years in its lifespan, the price of electricity and gas in each year of its lifetime needs to be estimated.
@@ -113,13 +113,13 @@ def about_data_page():
 
                 **Energy demand for heating in each year of operation**: Based on the property's annual heating demand and assumed efficiency of the heating system, the amount of energy (kWh per year) that the heating system will require to meet that property's heat demand can be estimated.
 
-                Energy demand [kWh] = Property heat demand [kWh] / Heating system efficiency
+                Energy demand [kWh] = Property heat demand [kWh] / <span style='color:{nesta_blue};'>Heating system efficiency/span>
 
                 **Cost of energy use for heating in each year of operation**: Using the time series of electricity and gas tariffs for each year of operation can be used to calculate the cost of energy usage in each year.
 
                 For each year of operation (5% VAT included):
                 
-                Cost of running the heating system [£/year] = ((Energy demand [kWh/year] x Unit cost of energy [£/kWh]) + (Energy standing charge [£/customer/year])) * 1.05
+                Cost of running the heating system [£/year] = ((Energy demand [kWh/year] x Unit cost of energy [£/kWh]) + (Energy standing charge [£/customer/year])) x 1.05
 
                 Note that, the gas standing charge is included in the running costs of a gas boiler but the electricity standing charge is not included in the running costs of an air-source heat pump.
 
@@ -130,14 +130,17 @@ def about_data_page():
         
     with st.expander("Levy rebalancing"):
         st.markdown(f"""
-                For calculating operating costs under a levy rebalancing scenario, the policy cost component (PC price cap component) is replaced with the policy costs from a rebalanced LevyCollection.
+                For calculating operating costs under a levy rebalancing scenario, the policy cost component (PC price cap component) is replaced with the policy costs from a rebalanced collection of levies.
 
-                We directly use the code from the asf_levies_model and follow the same approach to levy rebalancing.
+                We directly use the code from the [asf_levies_model](https://github.com/nestauk/asf_levies_model)/ https://nesta-levies-model.streamlit.app/ and follow the same approach to levy rebalancing.
 
                 Levy rebalancing options include:
                 - No rebalancing
-                - Rebalancing unit cost levies (slider): Anything in between all levies on gas and all levies on electricity. When this levy rebalancing option is chosen and rhe following levies that are ordinarily levied against electricity units are rebalanced: RO, FiT, ECO, AAHEDC, NCC.
-                - Remove from electricity to taxation
+                - Rebalancing unit cost levies (slider): Anything in between all levies on gas and all levies on electricity. When this levy rebalancing option is chosen and the following levies that are ordinarily levied against electricity units are rebalanced: RO, FiT, ECO, AAHEDC, NCC.
+                - Remove from electricity to taxation: for the following levies RO, FiT, ECO, AAHEDC, NCC.
+                    
+                The pre-set scenarios use the following levy rebalancing options (with the exception of the baseline scenario which uses no rebalancing):
+                - rebalance RO and FiT from electricity to gas
                 """)
         
 
@@ -185,9 +188,9 @@ def about_data_page():
         ashp_decile_costs = ashp_installation_costs()[[f"cost_percentile_{cost_decile}"]]
         st.dataframe(ashp_decile_costs)
 
-    with st.expander("## Air source heat pump subsidy options/models"):
+    with st.expander("## Air source heat pump subsidy trajectories"):
         st.markdown("""
-                    The user can select from different subsidy "models" for air source heat pumps or input their own subsidy model. The options are shown below. The subsidy values are in £ and are for each year between 2024 and 2035.
+                    The user can select from different subsidy trajectories for air source heat pumps or input their own level of subsidy. The options are shown below. The subsidy values are in £ and are for each year between 2024 and 2035.
                     """)
         ashp_subsidy_options = data_getters.get_ashp_subsidy_options_data()
         st.dataframe(ashp_subsidy_options)
@@ -230,3 +233,10 @@ def about_data_page():
 
                     The latest price cap period is used (XXX).
 """)
+    with st.expander("Building an average household"):
+        st.markdown("""
+                    The average household is built by weighting the property archetypes according to their distribution in the English housing stock, using English Housing Survey 2019-2020. These data are safeguarded and [accessed through the UK Data Service](https://datacatalogue.ukdataservice.ac.uk/studies/study/8923?id=8923#details).
+                    There are a few caves to this approach:
+                    - The distribution of property archetypes is based on English housing stock only, whereas the heat demand and installation costs are based on properties in England, Wales and Scotland.
+                    - The built year distribution is based on EHS data, whereas the heat demand and installation costs are based on EPC data, so there may be some differences in the built year distribution.                    
+                    """)
