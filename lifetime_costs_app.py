@@ -99,5 +99,12 @@ def lifetime_costs_app():
         about_data_page()
 
 
-with st.spinner("Loading lifetime costs app..."):
-    lifetime_costs_app()
+# setup password protection on the sidebar
+pwd = st.sidebar.text_input("Insert password to view lifetime costs app:", type="password")
+if pwd == st.secrets["PASSWORD"]:
+    with st.spinner("Loading lifetime costs app..."):
+        lifetime_costs_app()
+elif pwd == "":  # avoids error when app is first opened
+    pass
+else:
+    st.sidebar.error("Password incorrect. Please try again.")
