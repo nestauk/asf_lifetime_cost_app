@@ -16,6 +16,9 @@ def about_dashboard_page():
 
         The **Lifetime costs explorer** can be used to explore how various factors affect the whole-life costs of heat pumps and boilers. You can do this by exploring a set of pre-defined scenarios, or by creating your own custom scenario.
 
+        ### Navigating the explorer
+        Use the sidebar on the left to navigate between the different sections of the explorer. The "Lifetime costs: scenario selection" page allows you to create your own custom scenario by adjusting key parameters that influence the lifetime costs of heat pumps and gas boilers. The "Lifetime costs: comparing scenarios" page lets you compare the lifetime costs across different pre-defined scenarios. The "Data and methodology" page provides detailed information about the data sources and methods used in the analysis.
+
         ### Pre-defined scenarios and how to get to cost parity
         We identified conditions that could lead to price parity between heat pumps and gas boilers over the next decade. These are presented through three scenarios which demonstrate the trade-offs between policy choices and interactions with market and technological developments.
         These are compared to a **baseline** scenario in which no policy action is taken. The three scenarios are:
@@ -28,17 +31,17 @@ def about_dashboard_page():
 
         The scenarios involve varying five main factors that will influence the cost of a heat pump relative to a gas boiler:
 
-        **The upfront cost of installation**: This currently defaults to upfront costs falling by 2.5% each year from 202X to 2035.
+        **The upfront cost of installation**: This currently defaults to upfront costs falling either by 1% or 5%, depending on the scenario, each year from 202X to 2035.
 
         **The level of government subsidy**: We created different government trajectories, for example one where the existing £7,500 subsidy remains until at least 2028 before gradually reducing at different rates.
         
         **The cost of electricity relative to gas**: A key factor in the cost of electricity and gas is the levies, which are currently higher on electricity than gas. Our scenarios involve rebalancing the levies away from electricity and towards gas to different extents.
 
-        **The efficiency of the heat pump (and gas boiler)**: Seasonal Coefficient of Performance (SCOP) is a measure of how much heat is produced by a heat pump for a unit of electricity used.
+        **The efficiency of the heat pump**: Seasonal Coefficient of Performance (SCOP) is a measure of how much heat is produced by a heat pump for a unit of electricity used.
 
         **The interest rate for financing a heat pump**: Our scenarios assume all households will purchase heat pumps on finance, with 5% interest rates. Even where households do not use finance, the interest rate reflects the opportunity cost of not investing the money elsewhere.
 
-        The whole-life cost of each device in the scenarios is calculated by adding up the cost of installation and running costs and dividing them by the assumed heating system lifespan (defaults to 15 for both heat pumps and boilers) to get the average annual cost. Our analysis includes interest rates, so is intended to approximate the full yearly cost a household would pay if buying a heating system on finance.
+        The whole-life cost of each heating system in the scenarios is calculated by adding up the cost of installation, maintenance and running costs and dividing them by the assumed heating system lifespan (defaults to 15 for both heat pumps and boilers) to get the average annual cost. Our analysis includes interest rates, so is intended to approximate the full yearly cost a household would pay if buying a heating system on finance.
 
         When creating your own custom scenario, you can adjust each of these five factors to see how they affect the lifetime costs of heat pumps and gas boilers.
 
