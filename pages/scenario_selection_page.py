@@ -96,12 +96,12 @@ def scenario_selection_page():
                     "Expand the sections below to define your custom scenario parameters."
                 )
 
-                with st.expander("🗓️ Life span"):
+                with st.expander("🗓️ Lifespan"):
                     ashp_lifetime_col, boiler_lifetime_col = st.columns(2)
 
                     with ashp_lifetime_col:
                         ashp_life_span = st.slider(
-                            label="ASHP life span (years)",
+                            label="ASHP lifespan (years)",
                             min_value=1,
                             max_value=25,
                             value=config.life_span_default["ashp"],
@@ -111,7 +111,7 @@ def scenario_selection_page():
                         )
                     with boiler_lifetime_col:
                         boiler_life_span = st.slider(
-                            label="Gas boiler life span (years)",
+                            label="Gas boiler lifespan (years)",
                             min_value=1,
                             max_value=25,
                             value=config.life_span_default["boiler"],
@@ -323,13 +323,14 @@ def scenario_selection_page():
 
                         | Parameter | Gas Boiler | ASHP |
                         |-----------|------------|-------|
-                        | Life span (years) | {boiler_life_span} |{ashp_life_span} |
+                        | Lifespan (years) | {boiler_life_span} |{ashp_life_span} |
                         | Annual maintenance cost (£) | {boiler_maintenance_cost} |{ashp_maintenance_cost} |
                         | Frequency of maintenance per year | {boiler_maintenance_frequency} |{ashp_maintenance_frequency} |
                         | Efficiency | {boiler_efficiency} |{ashp_efficiency} |
                         | Heating system purchased with a loan? | - | {ashp_purchased_with_loan} |
                         | Loan interest rate |  - |{ashp_loan_interes_rate} |
                         | Subsidy model |  - |{ashp_subsidy_model} |
+                        | Annual cost decrease | 0% | {scenario_info["ashp_annual_cost_decrease"]*100}% |
 
                         Additional parameters for the running cost calculations:
 
@@ -367,6 +368,7 @@ def scenario_selection_page():
 
     mapped_archetype_options = [archetype_name_mapping[x] for x in cost_calculator.property_archetypes]
 
+    st.markdown("As default, results are shown for all archetypes and the weighted average archetype. You can filter the results by archetype below.")
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
     with filter_archetypes_col:
         filter_archetypes = st.multiselect(
@@ -533,17 +535,15 @@ def scenario_selection_page():
         archetype_name_mapping
     )
 
-    # random number of properties for testing purposes
-    number_of_properties = {
-        "Pre-1950 flat": 1254321,
-        "Post-1950 flat": 2876543,
-        "Pre-1950 semi/terraced house": 4132890,
-        "Post-1950 semi/terraced house": 5789123,
-        "Pre-1950 bungalow": 345678,
-        "Post-1950 bungalow": 987654,
-        "Pre-1950 detached house":  1567890,
-        "Post-1950 detached house": 3210987,
-    }
+    # needs to be QAed
+    number_of_properties = {'Post-1950 semi/terraced house': 6841365,
+    'Pre-1950 semi/terraced house': 5602441,
+    'Post-1950 flat': 4076569,
+    'Post-1950 detached house': 3103702,
+    'Post-1950 bungalow': 1564001,
+    'Pre-1950 flat': 1415792,
+    'Pre-1950 detached house': 1059425,
+    'Pre-1950 bungalow': 205582}
 
     lifetime_costs["number_of_properties"] = lifetime_costs["archetype_label"].map(number_of_properties)
     # Adding weighted average archetype
@@ -650,6 +650,8 @@ def scenario_selection_page():
         )
     )
 
+    st.markdown("You can toggle between annualised lifetime costs and total lifetime costs below. By default, annualised lifetime costs are shown, i.e. total lifetime costs divided by the lifespan of the heating system.")
+
     toggle_total_lifetime_costs = st.toggle(
         label="Show total lifetime costs instead of annualised lifetime costs",
         value=False,
@@ -676,7 +678,7 @@ def scenario_selection_page():
     ).configure_legend(
         labelFontSize=14, titleFontSize=14
     ).configure_header(
-        labelFontSize=14  # <-- changes facet row labels
+        labelFontSize=14
     )
 
     col7, cost_component_chart_col, col8 = st.columns([1, 8, 1])
