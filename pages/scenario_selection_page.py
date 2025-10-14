@@ -266,14 +266,17 @@ def scenario_selection_page():
                         == "rebalance unit costs between electricity and gas"
                     ):
                         with levies_inputs_col:
-                            variable_electricity_weight = st.slider(
-                                label="Rebalance between electricity (0) <-> gas (100)",
-                                min_value=0.0,
-                                max_value=100.0,
-                                value=0.0,
-                                step=10.0,
-                                key="custom_levy_variable_electricity_weights_input",
-                                help="Proportion of the scheme revenue that is levied against electricity units",
+                            custom_gas_weight = (
+                                st.slider(
+                                    label="Rebalance between electricity (0) <-> gas (100)",
+                                    min_value=0.0,
+                                    max_value=100.0,
+                                    value=0.0,
+                                    step=10.0,
+                                    key="custom_levy_gas_weights_input",
+                                    help="Proportion of the scheme revenue that is levied against gas units",
+                                )
+                                / 100
                             )
                             st.markdown(
                                 "The following levies that are ordinarily levied against electricity units are rebalanced: "
@@ -397,35 +400,25 @@ def scenario_selection_page():
         levy_rebalancing = True
         levies_to_rebalance = ["ro", "fit", "eco", "aahedc", "ncc"]
         levies_rebalancing_weights = {
-            "electricity_weight": 0,
-            "gas_weight": 1,
+            "electricity_weight": (1 - custom_gas_weight),
+            "gas_weight": custom_gas_weight,
             "tax_weight": 0,
             "fixed_electricity_weight": 0,
-            "variable_electricity_weight": (
-                variable_electricity_weight
-                if levy_rebalancing
-                == "rebalance unit costs between electricity and gas"
-                else 0
-            ),
+            "variable_electricity_weight": 1,
             "fixed_gas_weight": 0,
-            "variable_gas_weight": (
-                1 - variable_electricity_weight
-                if levy_rebalancing
-                == "rebalance unit costs between electricity and gas"
-                else 1
-            ),
+            "variable_gas_weight": 1,
         }
     elif levy_rebalancing == "remove all electricity levies to taxation":
         levy_rebalancing = True
         levies_to_rebalance = ["ro", "fit", "eco", "whd", "aahedc", "ncc"]
         levies_rebalancing_weights = {
             "electricity_weight": 0,
-            "gas_weight": 1,
-            "tax_weight": 0,
+            "gas_weight": 0,
+            "tax_weight": 1,
             "fixed_electricity_weight": 0,
             "variable_electricity_weight": 0,
             "fixed_gas_weight": 0,
-            "variable_gas_weight": 1,
+            "variable_gas_weight": 0,
         }
     elif levy_rebalancing == "rebalance RO and FiT from electricity to gas":
         levy_rebalancing = True
