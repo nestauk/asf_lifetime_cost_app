@@ -120,6 +120,29 @@ def scenario_selection_page():
                             help="Number of years gas boiler is assumed to be operational",
                         )
 
+                with st.expander(" Installation costs"):
+                    ashp_installation_cost_col, boiler_installation_cost_col = (
+                        st.columns(2)
+                    )
+
+                    with ashp_installation_cost_col:
+                        ashp_annual_cost_reduction = (
+                            st.slider(
+                                label="Annual cost reduction in ASHP installation cost (%)",
+                                min_value=-1.0,
+                                max_value=5.0,
+                                value=config.ashp_annual_cost_decrease_default * 100,
+                                step=1.0,
+                                key="custom_ashp_annual_cost_reduction_input",
+                                help="Percentage reduction in ASHP installation cost each future year. 5% refers to 5% annual cost reduction and -1% refers to a 1% annual cost increase.",
+                            )
+                            / 100
+                        )
+                    with boiler_installation_cost_col:
+                        st.markdown(
+                            "Boiler installation costs are always assumed to stay constant in future years."
+                        )
+
                 with st.expander("👨🏻‍🔧 Maintenance costs"):
                     ashp_maintenance_cost_col, boiler_maintenance_cost_col = st.columns(
                         2
@@ -316,6 +339,8 @@ def scenario_selection_page():
 
         levy_rebalancing = scenario_info["levy_rebalancing"]
 
+        ashp_annual_cost_reduction = scenario_info["ashp_annual_cost_decrease"]
+
         with st.expander("⚙️ Scenario parameter values"):
             st.markdown(
                 "Under the selected scenario, the following parameters are set as follows:"
@@ -438,7 +463,7 @@ def scenario_selection_page():
     # ASHP calculation
     ashp_upfront_costs = cost_calculator.compute_upfront_cost(
         heating_system="ashp",
-        annual_cost_reduction=0.05,
+        annual_cost_reduction=ashp_annual_cost_reduction,
         purchase_year=installation_year,
         life_span=ashp_life_span,
         decile=cost_decile,
