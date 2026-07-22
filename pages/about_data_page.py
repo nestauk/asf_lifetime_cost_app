@@ -57,7 +57,7 @@ def about_data_page():
                     For each year of the heating system's lifetime:
 
                     Total cost of owning the heating system [£/year] = Upfront cost [£/year] + Maintenance cost [£/year] + Running cost [£/year]
-                    """)
+                    """, unsafe_allow_html=True)
         
     with st.expander("Upfront costs"):
         st.markdown(f"""
