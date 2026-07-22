@@ -33,8 +33,8 @@ ashp_annual_cost_decrease_default = 0.01  # 1% annual cost decrease for ASHPs
 
 loan_interest_rate_options = {
     "0%: fully subsidised loan": 0,
-    "5%: government borrowing or morgage": 0.05,
-    "10%: personal finance": 0.1
+    "5%: government borrowing or mortgage": 0.05,
+    "10%: personal finance": 0.1,
 }
 loan_interest_rate_default_option = "5%: government borrowing or mortgage"
 

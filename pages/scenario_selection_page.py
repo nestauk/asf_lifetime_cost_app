@@ -58,7 +58,9 @@ def scenario_selection_page():
         )
 
     with st.expander("📅 Expand to select installation year and cost decile"):
-        st.markdown("Installation year is the year the heating system purchased and installed. Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost.")
+        st.markdown(
+            "Installation year is the year the heating system purchased and installed. Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost."
+        )
         installation_year_col, decile_col = st.columns(2)
 
         with installation_year_col:
@@ -91,7 +93,6 @@ def scenario_selection_page():
 
         if scenario_name != "":
             with st.expander("⚙️ Define your custom scenario parameters"):
-
                 st.write(
                     "Expand the sections below to define your custom scenario parameters."
                 )
@@ -322,7 +323,9 @@ def scenario_selection_page():
         ashp_efficiency = (
             3.0
             if scenario_info["ashp_scop"] == "reference"
-            else 3.5 if scenario_info["ashp_scop"] == "high" else 2.5
+            else 3.5
+            if scenario_info["ashp_scop"] == "high"
+            else 2.5
         )
         boiler_efficiency = config.boiler_efficiency_default
         ashp_purchased_with_loan = (
@@ -358,7 +361,7 @@ def scenario_selection_page():
                         | Heating system purchased with a loan? | - | {ashp_purchased_with_loan} |
                         | Loan interest rate |  - |{ashp_loan_interest_rate_option_name} |
                         | Subsidy model |  - |{ashp_subsidy_model} |
-                        | Annual cost reduction in market price of heating system installation  | 0% | {scenario_info["ashp_annual_cost_decrease"]*100}% |
+                        | Annual cost reduction in market price of heating system installation  | 0% | {scenario_info["ashp_annual_cost_decrease"] * 100}% |
 
                         Additional parameters for the running cost calculations:
 
@@ -369,7 +372,9 @@ def scenario_selection_page():
 
                         """
             )
-            st.markdown("To know more about these parameters, visit the 'About the app' page.")
+            st.markdown(
+                "To know more about these parameters, visit the 'About the app' page."
+            )
 
     name = (
         selected_scenario
@@ -394,9 +399,13 @@ def scenario_selection_page():
         "post_1950_detached_house": "Post-1950 detached house",
     }
 
-    mapped_archetype_options = [archetype_name_mapping[x] for x in cost_calculator.property_archetypes]
+    mapped_archetype_options = [
+        archetype_name_mapping[x] for x in cost_calculator.property_archetypes
+    ]
 
-    st.markdown("As default, results are shown for all archetypes and the weighted average archetype. You can filter the results by archetype below.")
+    st.markdown(
+        "As default, results are shown for all archetypes and the weighted average archetype. You can filter the results by archetype below."
+    )
     col5, filter_archetypes_col, col6 = st.columns([1, 4, 1])
     with filter_archetypes_col:
         filter_archetypes = st.multiselect(
@@ -410,9 +419,9 @@ def scenario_selection_page():
     # Processing inputs before computations
     if ashp_purchased_with_loan == "Yes":
         ashp_purchased_with_loan = True
-        ashp_loan_interest_rate = config.loan_interest_rate_options.get(
+        ashp_loan_interest_rate = config.loan_interest_rate_options[
             ashp_loan_interest_rate_option_name
-        )
+        ]
     else:
         ashp_purchased_with_loan = False
         ashp_loan_interest_rate = 0.0
@@ -542,48 +551,66 @@ def scenario_selection_page():
     ).reset_index()
 
     lifetime_costs["installation_costs_after_subsidy"] = (
-        lifetime_costs["installation_costs"]
-        - lifetime_costs["subsidy_value"]
+        lifetime_costs["installation_costs"] - lifetime_costs["subsidy_value"]
     )
-    lifetime_costs.drop(
-        columns=["installation_costs", "subsidy_value"], inplace=True
-    )
+    lifetime_costs.drop(columns=["installation_costs", "subsidy_value"], inplace=True)
 
     lifetime_costs["archetype_label"] = lifetime_costs["archetype_label"].map(
         archetype_name_mapping
     )
 
     # needs to be QAed
-    number_of_properties = {'Post-1950 semi/terraced house': 6841365,
-    'Pre-1950 semi/terraced house': 5602441,
-    'Post-1950 flat': 4076569,
-    'Post-1950 detached house': 3103702,
-    'Post-1950 bungalow': 1564001,
-    'Pre-1950 flat': 1415792,
-    'Pre-1950 detached house': 1059425,
-    'Pre-1950 bungalow': 205582}
+    number_of_properties = {
+        "Post-1950 semi/terraced house": 6841365,
+        "Pre-1950 semi/terraced house": 5602441,
+        "Post-1950 flat": 4076569,
+        "Post-1950 detached house": 3103702,
+        "Post-1950 bungalow": 1564001,
+        "Pre-1950 flat": 1415792,
+        "Pre-1950 detached house": 1059425,
+        "Pre-1950 bungalow": 205582,
+    }
 
-    lifetime_costs["number_of_properties"] = lifetime_costs["archetype_label"].map(number_of_properties)
+    lifetime_costs["number_of_properties"] = lifetime_costs["archetype_label"].map(
+        number_of_properties
+    )
     # Adding weighted average archetype
-    weighted_lifetime_costs = lifetime_costs.groupby("technology").apply(
-        lambda x: pd.Series(
-            {
-                "lifetime_running_costs": (x["lifetime_running_costs"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
-                "installation_costs_after_subsidy": (x["installation_costs_after_subsidy"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
-                "loan_interest": (x["loan_interest"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
-                "lifetime_maintenance_costs": (x["lifetime_maintenance_costs"] * x["number_of_properties"]).sum() / x["number_of_properties"].sum(),
-                "number_of_properties": x["number_of_properties"].sum(),
-            }
+    weighted_lifetime_costs = (
+        lifetime_costs.groupby("technology")
+        .apply(
+            lambda x: pd.Series(
+                {
+                    "lifetime_running_costs": (
+                        x["lifetime_running_costs"] * x["number_of_properties"]
+                    ).sum()
+                    / x["number_of_properties"].sum(),
+                    "installation_costs_after_subsidy": (
+                        x["installation_costs_after_subsidy"]
+                        * x["number_of_properties"]
+                    ).sum()
+                    / x["number_of_properties"].sum(),
+                    "loan_interest": (
+                        x["loan_interest"] * x["number_of_properties"]
+                    ).sum()
+                    / x["number_of_properties"].sum(),
+                    "lifetime_maintenance_costs": (
+                        x["lifetime_maintenance_costs"] * x["number_of_properties"]
+                    ).sum()
+                    / x["number_of_properties"].sum(),
+                    "number_of_properties": x["number_of_properties"].sum(),
+                }
+            )
         )
-    ).reset_index()
+        .reset_index()
+    )
     weighted_lifetime_costs["archetype_label"] = "Weighted average archetype"
-    life_span_map = {"ASHP": ashp_life_span,
-    "Gas boiler": boiler_life_span}
-    weighted_lifetime_costs["life_span"] = weighted_lifetime_costs["technology"].map(life_span_map)
-    lifetime_costs = pd.concat(
-        [lifetime_costs, weighted_lifetime_costs]
-    ).reset_index(drop=True)
-
+    life_span_map = {"ASHP": ashp_life_span, "Gas boiler": boiler_life_span}
+    weighted_lifetime_costs["life_span"] = weighted_lifetime_costs["technology"].map(
+        life_span_map
+    )
+    lifetime_costs = pd.concat([lifetime_costs, weighted_lifetime_costs]).reset_index(
+        drop=True
+    )
 
     lifetime_costs_selected_archetypes = lifetime_costs[
         lifetime_costs["archetype_label"].isin(filter_archetypes)
@@ -606,31 +633,34 @@ def scenario_selection_page():
         "loan_interest": "Loan interest",
         "installation_costs_after_subsidy": "Installation costs (after subsidy)",
         "lifetime_running_costs": "Running costs",
-
     }
 
-    df_comparing_costs["cost_type"] = df_comparing_costs["cost_type"].map(cost_type_name_mapping)
+    df_comparing_costs["cost_type"] = df_comparing_costs["cost_type"].map(
+        cost_type_name_mapping
+    )
 
     # Convert column to ordered categorical
     df_comparing_costs["archetype_label"] = pd.Categorical(
         df_comparing_costs["archetype_label"],
         categories=mapped_archetype_options + ["Weighted average archetype"],
-        ordered=True
+        ordered=True,
     )
     df_comparing_costs["cost_type"] = pd.Categorical(
         df_comparing_costs["cost_type"],
         categories=list(cost_type_name_mapping.values()),
-        ordered=True
+        ordered=True,
     )
     df_comparing_costs = df_comparing_costs.sort_values(by=["archetype_label", "cost"])
 
     cost_component_order = {
-        "Loan interest":0,
-        "Maintenance costs":1,
-        "Installation costs (after subsidy)":2,
-        "Running costs":3,
+        "Loan interest": 0,
+        "Maintenance costs": 1,
+        "Installation costs (after subsidy)": 2,
+        "Running costs": 3,
     }
-    df_comparing_costs["cost_type_order"] = df_comparing_costs["cost_type"].map(cost_component_order)
+    df_comparing_costs["cost_type_order"] = df_comparing_costs["cost_type"].map(
+        cost_component_order
+    )
     df_comparing_costs["total_cost"] = df_comparing_costs.groupby(
         ["technology", "archetype_label"]
     )["cost"].transform("sum")
@@ -653,10 +683,7 @@ def scenario_selection_page():
                     ],
                 ),
             ),
-            order=alt.Order(
-                "cost_type_order:N",
-                sort="descending"
-            ),
+            order=alt.Order("cost_type_order:N", sort="descending"),
             tooltip=[
                 alt.Tooltip("archetype_label:N", title="Archetype"),
                 alt.Tooltip("technology:N", title="Technology"),
@@ -667,14 +694,16 @@ def scenario_selection_page():
         )
         .facet(
             row=alt.Row(
-                "archetype_label:N", 
+                "archetype_label:N",
                 header=alt.Header(labelAngle=0, labelAlign="left"),
                 title=None,
             )
         )
     )
 
-    st.markdown("You can toggle between annualised lifetime costs and total lifetime costs below. By default, annualised lifetime costs are shown, i.e. total lifetime costs divided by the lifespan of the heating system.")
+    st.markdown(
+        "You can toggle between annualised lifetime costs and total lifetime costs below. By default, annualised lifetime costs are shown, i.e. total lifetime costs divided by the lifespan of the heating system."
+    )
 
     toggle_total_lifetime_costs = st.toggle(
         label="Show total lifetime costs instead of annualised lifetime costs",
@@ -684,8 +713,10 @@ def scenario_selection_page():
     )
 
     if toggle_total_lifetime_costs:
-        title = ["Total lifetime costs of heating systems, broken down by installation costs (after subsidy),",
-        " running costs, maintenance costs and loan interest (if applicable)"]
+        title = [
+            "Total lifetime costs of heating systems, broken down by installation costs (after subsidy),",
+            " running costs, maintenance costs and loan interest (if applicable)",
+        ]
     else:
         df_comparing_costs["cost"] = (
             df_comparing_costs["cost"] / df_comparing_costs["life_span"]
@@ -693,19 +724,17 @@ def scenario_selection_page():
         df_comparing_costs["total_cost"] = (
             df_comparing_costs["total_cost"] / df_comparing_costs["life_span"]
         )
-        title = ["Annualised lifetime costs of heating systems, broken down by installation costs (after subsidy),",
-        " running costs, maintenance costs and loan interest (if applicable)"]
+        title = [
+            "Annualised lifetime costs of heating systems, broken down by installation costs (after subsidy),",
+            " running costs, maintenance costs and loan interest (if applicable)",
+        ]
 
-    chart = chart.properties(
-        title=title
-    ).configure_title(
-        fontSize=20
-    ).configure_axis(
-        labelFontSize=14, titleFontSize=14
-    ).configure_legend(
-        labelFontSize=14, titleFontSize=14
-    ).configure_header(
-        labelFontSize=14
+    chart = (
+        chart.properties(title=title)
+        .configure_title(fontSize=20)
+        .configure_axis(labelFontSize=14, titleFontSize=14)
+        .configure_legend(labelFontSize=14, titleFontSize=14)
+        .configure_header(labelFontSize=14)
     )
 
     col7, cost_component_chart_col, col8 = st.columns([1, 8, 1])
