@@ -6,3 +6,5 @@ s3fs
 openpyxl
 botocore>=1.39.7
 boto3>=1.39.15
+git+https://github.com/nestauk/asf_levies_model.git
+git+https://github.com/nestauk/asf_lifetime_cost_model.git@v1.0.0
