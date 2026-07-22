@@ -5,3 +5,4 @@ streamlit-option-menu
 s3fs
 openpyxl
 botocore>=1.39.7
+boto3>=1.39.15

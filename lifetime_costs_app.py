@@ -40,7 +40,7 @@ def set_up_sidebar():
             "About the app",
             "Lifetime costs: scenario selection",
             "Lifetime costs: comparing scenarios",
-            "About the data",
+            "Data and methodology",
         ],  # The options to be displayed in the sidebar
         icons=[
             "house",
