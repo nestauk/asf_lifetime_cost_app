@@ -225,7 +225,7 @@ def scenario_selection_page():
                         )
                         if ashp_purchased_with_loan == "Yes":
                             with ashp_loan_interes_rate_col:
-                                ashp_loan_interes_rate = st.selectbox(
+                                ashp_loan_interest_rate_option_name = st.selectbox(
                                     label="ASHP loan interest rate",
                                     options=[
                                         option
@@ -291,13 +291,13 @@ def scenario_selection_page():
                         with levies_inputs_col:
                             custom_gas_weight = (
                                 st.slider(
-                                    label="Rebalance between electricity (0) <-> gas (100)",
+                                    label="Rebalance between electricity (0% on gas) <-> gas (100% on gas)",
                                     min_value=0.0,
                                     max_value=100.0,
                                     value=0.0,
                                     step=10.0,
                                     key="custom_levy_gas_weights_input",
-                                    help="Proportion of the scheme revenue that is levied against gas units",
+                                    help="Proportion of the scheme revenue that is levied against gas units. Electricity (0) setting is 0% of scheme revenue is levied on gas units (i.e. 100% on electricity) and gas (100) setting is 100% of scheme revenue on gas units.",
                                 )
                                 / 100
                             )
@@ -329,9 +329,9 @@ def scenario_selection_page():
             "Yes" if scenario_info["purchasing_with_loans"] else "No"
         )
         if ashp_purchased_with_loan == "Yes":
-            ashp_loan_interes_rate = scenario_info["loan_interest_rate"]
+            ashp_loan_interest_rate_option_name = scenario_info["loan_interest_rate"]
         else:
-            ashp_loan_interes_rate = 0
+            ashp_loan_interest_rate = 0
 
         ashp_subsidy_model = scenario_info["ashp_subsidy"]
 
@@ -352,13 +352,13 @@ def scenario_selection_page():
                         | Parameter | Gas Boiler | ASHP |
                         |-----------|------------|-------|
                         | Lifespan (years) | {boiler_life_span} |{ashp_life_span} |
-                        | Annual maintenance cost (£) | {boiler_maintenance_cost} |{ashp_maintenance_cost} |
+                        | Cost of maintenance service (£) | {boiler_maintenance_cost} |{ashp_maintenance_cost} |
                         | Frequency of maintenance per year | {boiler_maintenance_frequency} |{ashp_maintenance_frequency} |
                         | Efficiency | {boiler_efficiency} |{ashp_efficiency} |
                         | Heating system purchased with a loan? | - | {ashp_purchased_with_loan} |
-                        | Loan interest rate |  - |{ashp_loan_interes_rate} |
+                        | Loan interest rate |  - |{ashp_loan_interest_rate_option_name} |
                         | Subsidy model |  - |{ashp_subsidy_model} |
-                        | Annual cost decrease | 0% | {scenario_info["ashp_annual_cost_decrease"]*100}% |
+                        | Annual cost reduction in market price of heating system installation  | 0% | {scenario_info["ashp_annual_cost_decrease"]*100}% |
 
                         Additional parameters for the running cost calculations:
 
@@ -410,12 +410,12 @@ def scenario_selection_page():
     # Processing inputs before computations
     if ashp_purchased_with_loan == "Yes":
         ashp_purchased_with_loan = True
-        ashp_loan_interes_rate = config.loan_interest_rate_options.get(
-            ashp_loan_interes_rate
+        ashp_loan_interest_rate = config.loan_interest_rate_options.get(
+            ashp_loan_interest_rate_option_name
         )
     else:
         ashp_purchased_with_loan = False
-        ashp_loan_interes_rate = 0.0
+        ashp_loan_interest_rate = 0.0
 
     if levy_rebalancing == "no rebalancing (current price cap)":
         levy_rebalancing = False
@@ -473,7 +473,7 @@ def scenario_selection_page():
             else {installation_year: subsidy_value}
         ),
         purchase_with_loan=ashp_purchased_with_loan,
-        loan_interest_rate=ashp_loan_interes_rate,
+        loan_interest_rate=ashp_loan_interest_rate,
     )
 
     ashp_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
@@ -504,7 +504,7 @@ def scenario_selection_page():
         heating_system="boiler",
         annual_cost_reduction=0,
         purchase_year=installation_year,
-        life_span=ashp_life_span,
+        life_span=boiler_life_span,
     )
     boiler_maintenance_costs = cost_calculator.compute_total_maintenance_cost(
         maintenance_frequency_per_year=boiler_maintenance_frequency,
@@ -577,12 +577,9 @@ def scenario_selection_page():
         )
     ).reset_index()
     weighted_lifetime_costs["archetype_label"] = "Weighted average archetype"
-    weighted_lifetime_costs["life_span"] = (
-        lifetime_costs["life_span"]
-        .mean()
-        .round()
-        .astype(int)
-    )
+    life_span_map = {"ASHP": ashp_life_span,
+    "Gas boiler": boiler_life_span}
+    weighted_lifetime_costs["life_span"] = weighted_lifetime_costs["technology"].map(life_span_map)
     lifetime_costs = pd.concat(
         [lifetime_costs, weighted_lifetime_costs]
     ).reset_index(drop=True)
@@ -634,7 +631,9 @@ def scenario_selection_page():
         "Running costs":3,
     }
     df_comparing_costs["cost_type_order"] = df_comparing_costs["cost_type"].map(cost_component_order)
-
+    df_comparing_costs["total_cost"] = df_comparing_costs.groupby(
+        ["technology", "archetype_label"]
+    )["cost"].transform("sum")
     chart = (
         alt.Chart(df_comparing_costs)
         .mark_bar()
@@ -657,7 +656,14 @@ def scenario_selection_page():
             order=alt.Order(
                 "cost_type_order:N",
                 sort="descending"
-            )
+            ),
+            tooltip=[
+                alt.Tooltip("archetype_label:N", title="Archetype"),
+                alt.Tooltip("technology:N", title="Technology"),
+                alt.Tooltip("cost_type:N", title="Cost component type"),
+                alt.Tooltip("cost:Q", title="Cost component (£)", format=",.2f"),
+                alt.Tooltip("total_cost:Q", title="Total cost (£)", format=",.2f"),
+            ],
         )
         .facet(
             row=alt.Row(
@@ -683,6 +689,9 @@ def scenario_selection_page():
     else:
         df_comparing_costs["cost"] = (
             df_comparing_costs["cost"] / df_comparing_costs["life_span"]
+        )
+        df_comparing_costs["total_cost"] = (
+            df_comparing_costs["total_cost"] / df_comparing_costs["life_span"]
         )
         title = ["Annualised lifetime costs of heating systems, broken down by installation costs (after subsidy),",
         " running costs, maintenance costs and loan interest (if applicable)"]

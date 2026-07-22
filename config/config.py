@@ -36,7 +36,7 @@ loan_interest_rate_options = {
     "5%: government borrowing or morgage": 0.05,
     "10%: personal finance": 0.1
 }
-loan_interest_rate_default_option = "5%: government borrowing or morgage"
+loan_interest_rate_default_option = "5%: government borrowing or mortgage"
 
 wholesale_price_projection_options = [
     "reference",  # DESNZ_Ref
