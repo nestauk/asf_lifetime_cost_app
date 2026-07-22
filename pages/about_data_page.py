@@ -22,7 +22,7 @@ def about_data_page():
 
                 There are 4 pre-set scenarios with the following defaults.
 
-                | Scenario            | SCOP | Subsidy model  | ASHP annual cost decrease | Purchasing with loans  | Loan interest rate | Wholesale price projection                                | Levy rebalancing                              | 
+                | Scenario            | SCOP | Subsidy model  | ASHP annual cost decrease | Purchasing ASHP with loans  | Loan interest rate | Energy wholesale price projection                                | Policy costs on energy bills                              | 
                 |---------------------|------|----------------|---------------------------|------------------------|--------------------|-----------------------------------------------------------|-----------------------------------------------|
                 | Baseline            | 3.0  | Zero from 2028 | 1%                        | Yes                    | 5%                 | Reference                                                 | No rebalancing                                |
                 | High innovation     | 3.5  | Fast stepdown  | 5%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
