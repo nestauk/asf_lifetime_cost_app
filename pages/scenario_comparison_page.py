@@ -22,11 +22,11 @@ def comparing_scenarios_page():
     st.markdown("# Lifetime costs: comparing scenarios")
     st.markdown(
         """
-        This page allows you to compare the lifetime costs of boilers and air source heat pumps across different pre-set scenarios for an average household.
+        This page allows you to compare the development of lifetime cost difference between boilers and air source heat pumps over time, across different preset scenarios for an average household. 
         """
     )
 
-    with st.expander("📅 Selet the cost decile"):
+    with st.expander("📅 Select the cost decile"):
         st.markdown("Cost decile refers to the distribution of upfront costs for air source heat pumps, where 50 corresponds to the median cost.")
         cost_decile = st.selectbox(
             label="Select the cost decile (50 corresponds to the median)",
@@ -47,29 +47,29 @@ def comparing_scenarios_page():
     )    
     scenarios_list = results["scenario"].unique().tolist()
 
-    st.markdown("As default, the chart shows annualised lifetime costs, i.e. the average yearly cost over the lifetime of the heating system. You can toggle to see total lifetime costs instead.")
+    st.markdown("By default, the chart shows the difference in annualised lifetime costs between scenarios, i.e. the difference in average yearly costs over the lifetime of the heating systems. You can toggle to see the difference in total lifetime costs instead.")
     toggle_total_lifetime_costs = st.toggle(
-        label="Show total lifetime costs instead of annualised lifetime costs",
+        label="Show difference in total lifetime costs instead of difference in annualised lifetime costs",
         value=False,
         key="toggle_total_lifetime_costs",
-        help="Toggle between annualised lifetime costs and total lifetime costs",
+        help="Toggle between difference in annualised lifetime costs and difference in total lifetime costs",
     )
 
     if toggle_total_lifetime_costs:
-        title = ["Total difference between air source heat pumps and gas boilers by installation year and scenario for average household",
+        title = ["Difference in total lifetime costs of air source heat pumps vs. gas boilers by installation year and scenario for average household",
                  "(values below zero indicate air source heat pumps are cheaper)"]
     else:
         results["cost_difference_ashp_minus_boiler"] = (
             results["cost_difference_ashp_minus_boiler"] / 15  # annualise over 15 years
         )
-        title = ["Annual difference between air source heat pumps and gas boilers by installation year and scenario for average household",
+        title = ["Difference in annualised lifetime costs of air source heat pumps vs. gas boilers by installation year and scenario for average household",
                  "(values below zero indicate air source heat pumps are cheaper)"]
     line_chart = (
         alt.Chart(results)
         .mark_line(point=True, strokeWidth=3)
         .encode(
             x=alt.X("installation_year:O", title="Installation year"),
-            y=alt.Y("cost_difference_ashp_minus_boiler:Q", title=""),
+            y=alt.Y("cost_difference_ashp_minus_boiler:Q", title="Cost difference (heat pump - boiler, £)"),
             color=alt.Color("scenario:N", title="Scenario", scale=alt.Scale(domain=scenarios_list, range=NESTA_COLOURS)),
             tooltip=[
                 alt.Tooltip("installation_year:O", title="Installation year"),
@@ -92,9 +92,10 @@ def comparing_scenarios_page():
         alt.Chart(area_df)
         .mark_area(color="lightgray", opacity=0.3)
         .encode(
-            x=alt.X("installation_year:O", title="Installation year"),
+            x=alt.X("installation_year:O"),
             y=alt.Y("y:Q", title=""),
-            y2=alt.Y2(value=0)
+            y2=alt.Y2(value=0),
+            tooltip=alt.value(None),
         )
     )
     label = (
@@ -127,3 +128,14 @@ def comparing_scenarios_page():
         icon=":material/download:",
     )
 
+    st.markdown(
+        """
+                ### Preset scenarios explained
+                
+                The assumptions underlying each preset scenario are:
+
+                <INSERT UPDATED TABLE FROM about_data_page.py ONCE IT IS FINALISED>
+
+                You can find more information about the methodology and data sources used on the Data and methodology page.
+                """
+    )
