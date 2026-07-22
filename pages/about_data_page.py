@@ -18,18 +18,18 @@ def about_data_page():
     st.markdown("## Overview")
 
     st.markdown("""
-                The lifetime costs calculator allows to estimate the lifetime costs of gas boilers and air source heat pumps for different property archetypes under different scenarios.
+                The lifetime costs calculator allows you to estimate the lifetime costs of gas boilers and air source heat pumps (hydronic/air to water) for different property archetypes under different scenarios.
 
-                There are 4 pre-set scenarios with the following defaults.
+                There are 4 preset scenarios with the following defaults.
 
                 | Scenario            | SCOP | Subsidy model  | ASHP annual cost decrease | Purchasing ASHP with loans  | Loan interest rate | Energy wholesale price projection                                | Policy costs on energy bills                              | 
                 |---------------------|------|----------------|---------------------------|------------------------|--------------------|-----------------------------------------------------------|-----------------------------------------------|
                 | Baseline            | 3.0  | Zero from 2028 | 1%                        | Yes                    | 5%                 | Reference                                                 | No rebalancing                                |
                 | High innovation     | 3.5  | Fast stepdown  | 5%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
-                | Cheaper electricity | 3.0  | Fast stepdown  | 1%                        | Yes                    | 5%                 | Reference for gas, Low fossil fuel prices for electricity | Rebalance RO and FiT from electricity to gas  |
+                | Cheaper electricity | 3.0  | Fast stepdown  | 1%                        | Yes                    | 5%                 | Low fossil fuel prices scenario | Rebalance RO and FiT from electricity to gas  |
                 | High subsidy        | 3.5  | High           | 1%                        | Yes                    | 5%                 | Reference                                                 | Rebalance RO and FiT from electricity to gas  |
                 
-                In the 'scenario selection' page, the user can select one of the pre-set scenarios or create a custom scenario by changing any of the parameters.
+                In the 'scenario selection' page, users can select one of the preset scenarios or create a custom scenario by changing any of the parameters.
                 The 'comparing scenarios' page compares lifetime costs of gas boilers and air source heat pumps under the above pre-set scenarios.
 
                 Below you can find more information about the methodology and data sources used in the lifetime costs calculator.
@@ -65,24 +65,24 @@ def about_data_page():
             
             For each year:
                     
-            Cost reduction = (1 - <span style='color:{nesta_blue};'>annual cost reduction rate</span>) * Cost reduction in previous year
+            Cost reduction = (1 - <span style='color:{nesta_blue};'>Annual cost reduction rate</span>) * Cost reduction in previous year
                     
-            where span style='color:{nesta_blue};'>annual cost reduction rate</span> is how much we expect cost to reduce annualy e.g. 0.01 if 1% reduction expected
+            where <span style='color:{nesta_blue};'>annual cost reduction rate</span> is how much we expect cost to reduce annually e.g. 0.01 if 1% reduction expected
                     
-            Adjusted installation cost [£] = Installation cost x cost reduction 
+            Adjusted installation cost [£] = Installation cost [£] x Cost reduction 
             
             **If purchasing with loan, calculate total loan repayment value**:
             
-            Loan ammount =  Adjusted installation cost - Subsidy available
+            Loan amount [£] =  Adjusted installation cost [£] - Subsidy available [£]
                     
-            Annual loan payment = (Loan ammount x <span style='color:{nesta_blue};'>interest rate</span>) / (1 - ((1 + <span style='color:{nesta_blue};'>interest rate</span>) ** -<span style='color:{nesta_blue};'>lifespan/span>))
+            Annual loan payment [£/year] = (Loan amount x <span style='color:{nesta_blue};'>Interest rate</span>) / (1 - ((1 + <span style='color:{nesta_blue};'>Interest rate</span>) ^ -<span style='color:{nesta_blue};'>Lifespan</span>))
             
-            Loan repayment value = Annual loan payment x <span style='color:{nesta_blue};'>lifespan/span>
+            Loan repayment value [£] = Annual loan payment [£/year] x <span style='color:{nesta_blue};'>Lifespan</span> [years]
                     
             **Upfront costs over lifetime**:
                     
-            Upfront costs over lifetime = Loan ammount + Loan Repayment value
-            """)
+            Upfront costs over lifetime = Loan amount + Loan Repayment value
+            """, unsafe_allow_html=True)
         
     with st.expander("Maintenance costs"):
         st.markdown(f"""
@@ -92,7 +92,7 @@ def about_data_page():
 
                 **Lifetime maintenance cost**: This is the total cost of maintaining the heating system over its entire lifetime.
 
-                Lifetime maintenance cost = Annual maintenance cost x <span style='color:{nesta_blue};'>lifespan/span>
+                Lifetime maintenance cost [£] = Annual maintenance cost [£/year] x <span style='color:{nesta_blue};'>Lifespan</span> [years]
                     """,
     unsafe_allow_html=True)
         
@@ -104,43 +104,45 @@ def about_data_page():
                     
                 **Model the gas and electricity tariff (price cap) for each year of the heating system's lifetime**: Based on the heating system's purchase year and number of years in its lifespan, the price of electricity and gas in each year of its lifetime needs to be estimated.
 
-                To do this, a time series of electricity and gas tariffs for each year of the heating system's lifetime is screated:
-                - all years will use the latest Ofgem energy price cap.
-                - For years in the future, the wholesale cost components (DF and CM) are replaced with the DESNZ wholesale price projection value.
-                - If a levy rebalancing scenario is applied, the policy cost component (PC) is replaced with the new levy rates for all years (current and future).
+                To do this, a time series of electricity and gas tariffs for each year of the heating system's lifetime is created:
+                - Wholesale cost components (DF and CM in the Ofgem energy price cap) are set using DESNZ wholesale price projection values (see the section "Energy future price projections" below for more details).
+                - Policy costs are assumed constant, at the level of the latest price cap or at the level set by the policy costs rebalancing scenario.
+                - For other cost components (including network costs), we assume levels set in the latest Ofgem energy price cap.
                     
-                In the section below you can read more about levy rebalancing scenarios.
+                In the section below you can read more about rebalancing scenarios for policy costs.
 
                 **Energy demand for heating in each year of operation**: Based on the property's annual heating demand and assumed efficiency of the heating system, the amount of energy (kWh per year) that the heating system will require to meet that property's heat demand can be estimated.
 
-                Energy demand [kWh] = Property heat demand [kWh] / <span style='color:{nesta_blue};'>Heating system efficiency/span>
+                Energy demand [kWh] = Property heat demand [kWh] / <span style='color:{nesta_blue};'>Heating system efficiency</span>
+                
+                Heating system efficiency, also known as the Seasonal Coefficient of Performance (SCOP), measures how effectively a heating system converts energy into heat over an entire heating season. It is the ratio of the total heat output to the total energy input. For example, a SCOP of 3.0 means the system produces 3 kWh of heat for every 1 kWh of energy it consumes.
 
-                **Cost of energy use for heating in each year of operation**: Using the time series of electricity and gas tariffs for each year of operation can be used to calculate the cost of energy usage in each year.
+                **Cost of energy use for heating in each year of operation**: The time series of electricity and gas tariffs for each year of operation can be used to calculate the cost of energy usage in each year.
 
                 For each year of operation (5% VAT included):
                 
                 Cost of running the heating system [£/year] = ((Energy demand [kWh/year] x Unit cost of energy [£/kWh]) + (Energy standing charge [£/customer/year])) x 1.05
 
-                Note that, the gas standing charge is included in the running costs of a gas boiler but the electricity standing charge is not included in the running costs of an air-source heat pump.
+                Note that the gas standing charge is included in the running costs of a gas boiler but the electricity standing charge is not included in the running costs of an air-source heat pump. This is because the standing charge on electricity will apply regardless of heat source, whereas households can disconnect from gas if they switch to a heat pump.
 
                 **Total lifetime running costs**: The total lifetime cost of running the heating system is calculated by summing all annual running cost values. 
 
                 The annualised lifetime running cost can then be calculated by dividing the total lifetime running cost by the number of years of its assumed lifetime. Note that the annualised lifetime running cost is different to the estimated running cost of the heating system in each year of its lifetime (which varies depending on future energy price projections).
-                    """)
+                    """, unsafe_allow_html=True)
         
-    with st.expander("Levy rebalancing"):
+    with st.expander("Policy cost rebalancing"):
         st.markdown(f"""
-                For calculating operating costs under a levy rebalancing scenario, the policy cost component (PC price cap component) is replaced with the policy costs from a rebalanced collection of levies.
+                For calculating operating costs under a policy cost rebalancing scenario, the policy cost component (PC price cap component) is replaced with the policy costs from a rebalanced collection of levies.
 
-                We directly use the code from the [asf_levies_model](https://github.com/nestauk/asf_levies_model)/ https://nesta-levies-model.streamlit.app/ and follow the same approach to levy rebalancing.
+                We directly use the code from the [asf_levies_model](https://github.com/nestauk/asf_levies_model)/ https://nesta-levies-model.streamlit.app/ and follow the same approach to rebalancing.
 
-                Levy rebalancing options include:
+                Rebalancing options include:
                 - No rebalancing
-                - Rebalancing unit cost levies (slider): Anything in between all levies on gas and all levies on electricity. When this levy rebalancing option is chosen and the following levies that are ordinarily levied against electricity units are rebalanced: RO, FiT, ECO, AAHEDC, NCC.
-                - Remove from electricity to taxation: for the following levies RO, FiT, ECO, AAHEDC, NCC.
+                - Rebalancing unit costs (slider): When this levy rebalancing option is chosen, the following levies that are ordinarily levied against electricity units are rebalanced: RO, FiT, ECO, AAHEDC, NCC. These levies can be rebalanced to proportions between being 100% levied against gas and 100% levied against electricity.
+                - Remove unit costs from electricity to taxation: for the following levies RO, FiT, ECO, AAHEDC, NCC.
                     
-                The pre-set scenarios use the following levy rebalancing options (with the exception of the baseline scenario which uses no rebalancing):
-                - rebalance RO and FiT from electricity to gas
+                The preset scenarios use the following levy rebalancing options (with the exception of the baseline scenario which uses no rebalancing):
+                - Rebalance RO and FiT from being levied on electricity units to gas units
                 """)
         
 
@@ -150,7 +152,7 @@ def about_data_page():
         st.markdown("""
                     **Microgeneration Certification Scheme (MCS) data on heat pump installations**: This is a subset of the MCS Installations Database (MID), and contains one record for each MCS certificate associated with a heat pump installation. The dataset contains records of both domestic and non-domestic air source, water/ground source and other types of heat pump installations. MID data is used with permission from MCS and subject to the conditions of a data sharing agreement.
 
-                    **Energy Performance Certificates (EPC) register data about homes**: Property data comes from England and Wales and Scotland's EPC register. The EPC register provides data on building characteristics and energy efficiency measures, including: property address and other location information; property characteristics such as number of rooms, property type and built form. Heating system(s) installed; Energy efficiency ratings. The EPC Register datasets are open-source and accessible to everyone.
+                    **Energy Performance Certificates (EPC) register data**: Property data comes from England & Wales and Scotland's EPC register. EPC records provide data on building characteristics and energy efficiency measures, including: property address and other location information; property characteristics such as number of rooms, property type and built form; heating system(s) installed; energy efficiency ratings. The EPC Register datasets are open data and accessible to everyone.
 
                     **Joint MCS-EPC dataset**: The joint MCS-EPC dataset is created by linking the MCS heat pump installations data with EPC data. The linkage is done using property address information. More information in this [GitHub repository](https://github.com/nestauk/asf_daps).
 
@@ -161,21 +163,21 @@ def about_data_page():
 
                     #### Property archetypes
                     
-                    The user can select/see results for 8 different housing archetypes: flats; semi-detached & terraced houses and maisonettes; detached houses; and bungalows; with each group split into pre- and post-1950 construction.
+                    Users can select/view results for 8 different housing archetypes: flats; semi-detached & terraced houses and maisonettes; detached houses; and bungalows; with each group split into pre- and post-1950 construction.
 
                     #### Annual heat demand for property archetypes
 
-                    Annual heat demand is estimated for the above archetypes. To learn more about how annual heat demand is estimated, please visit the [GitHub repository](https://github.com/nestauk/asf_heat_pump_affordability/blob/dev/asf_heat_pump_affordability/notebooks/Archetype_Heat_Demand.py)
-                    The annual heat demand for property archetypes uses data up to QX 2024 and is shown below:
+                    Annual heat demand (kWh) is estimated for the above archetypes. To learn more about how annual heat demand is estimated, please visit the [GitHub repository](https://github.com/nestauk/asf_heat_pump_affordability/blob/dev/asf_heat_pump_affordability/notebooks/Archetype_Heat_Demand.py)
+                    The annual heat demand for property archetypes uses data from 2021 up to Q2 2023 and is shown below:
                     """)
         heat_demand = data_getters.get_property_heat_demand()
         st.dataframe(heat_demand)
 
         st.markdown("""
                     #### Air source heat pump installation costs for each property archetype and decile
-                    Costs of installing Air Source Heat Pumps are estimated for the above housing archetypes and at different cost deciles. Costs are adjusted for inflation against a chosen base year.
+                    Costs of installing air source heat pumps are estimated for the above housing archetypes and at different cost deciles. 
 
-                    The air source heat pump installation costs for each property archetype and cost decile uses data up to QX 2024 and is shown below. You can select the cost decile to view the corresponding installation costs in £.
+                    The air source heat pump installation costs for each property archetype and cost decile uses data from 2021 to Q2 2023 and is shown below. You can select the cost decile to view the corresponding installation costs in £ (adjusted for inflation and expressed in 2023 prices).         
                     """)
         cost_decile = st.selectbox(
                 label="Select the cost decile (50 corresponds to the median)",
@@ -187,26 +189,28 @@ def about_data_page():
         ashp_installation_costs = data_getters.get_ashp_installation_costs
         ashp_decile_costs = ashp_installation_costs()[[f"cost_percentile_{cost_decile}"]]
         st.dataframe(ashp_decile_costs)
-
+        st.markdown("""
+                    Users can select the rate at which air source heat pump installation costs reduce by annually. This percentage reduction will be applied to the 2023 installation costs to estimate installation costs in later years.
+                    """)
     with st.expander("## Air source heat pump subsidy trajectories"):
         st.markdown("""
-                    The user can select from different subsidy trajectories for air source heat pumps or input their own level of subsidy. The options are shown below. The subsidy values are in £ and are for each year between 2024 and 2035.
+                    Users can select from different subsidy trajectories for air source heat pumps or input their own level of subsidy. The options are shown below. The subsidy values are in £ (nominal) and are for each year between 2025 and 2035.
                     """)
         ashp_subsidy_options = data_getters.get_ashp_subsidy_options_data()
         st.dataframe(ashp_subsidy_options)
 
     with st.expander("Gas boiler installation costs"):
         st.markdown("""
-                    Gas boiler installation costs are presented each property archetype. These costs result from user research as part of the NESO Future Tech Options project work.
+                    Gas boiler installation costs are presented each property archetype. These costs result from Nesta research and analysis of boiler prices online.
 
                     These refer to the period of XXX.
                     """)
         gas_boiler_installation_costs = data_getters.get_gas_boiler_installation_costs()
         st.dataframe(gas_boiler_installation_costs)
 
-    with st.expander("Energy future price projections"):
+    with st.expander("Energy price projections"):
         st.markdown("""
-                    [DESNZ's wholesale price projections](https://www.gov.uk/government/publications/energy-and-emissions-projections-2023-to-2050) are used as projections of the wholesale cost components of the unit cost of electricity and gas in the years 2024 to 2050.
+                    [DESNZ's Energy and emissions projections](https://www.gov.uk/government/publications/energy-and-emissions-projections-2023-to-2050) (Annex M) are used as estimates of the wholesale cost components of the unit cost of electricity and gas in the years 2025 to 2050.
                     
                     **Projection scenarios**: Three scenarios with different projections are available:
                     - Reference
@@ -215,17 +219,16 @@ def about_data_page():
 
                     DESNZ projections provide wholesale price projections for natural gas in p/therm. These are converted to p/kWh (Therm to kWh conversion factor = 29.31).
 
-                    **Classification of tariff cost components** For calculating future operating costs, the wholesale cost components (DF and CM) are replaced with DESNZ wholesale price projections for that year.
-                    For calculating operating costs under a levy rebalancing scenario, the policy cost component (PC) is replaced with the policy costs from a rebalanced LevyCollection.
+                    **Classification of tariff cost components** For calculating future operating costs, the wholesale cost components (Direct Fuel, DF, and Capacity Market, CM) are replaced with DESNZ wholesale price projections for that year.
+                    For calculating operating costs under a levy rebalancing scenario, the policy cost component (PC) is updated with the rebalanced policy costs.
 
-                    **Payment method type:** Costs vary depending on the payment type. In Annex 9, there are three cost tables: “Other Payment Method”, “Standard Credit” and “PPM”. "Other Payment Method" is the default. This payment method corresponds to the table for “payment by Direct Debit” on the main energy price cap announcement page. Assumed to be the most common payment method.
 
                     **Metering arrangement for electricity**: the price cap costs for single-rate metering are used for the price of electricity (as opposed to multi-register metering). Assumed to be the most common metering arrangement.
 
-                    DESNZ wholesale price projections refer to the period XXX. DESNZ projections and modify time series after XXXX.
+                    Wholesale prices are projected by DESNZ up to 2050. In this model, DESNZ projections are modified such that (i) wholesale prices are held constant at 2040 levels from 2041 to 2050 in the reference scenario, (ii) wholesale prices are held constant at 2031 levels from 2032 to 2050 in the low fossil fuel prices and high fossil fuel prices scenarios.
                     """)
 
-    with st.expander("Cost of electricity and gas"):
+    with st.expander("Non-wholesale components of gas and electricity prices"):
         st.markdown("""
                     [Ofgem's energy price cap](https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/energy-price-cap-default-tariff-policy/energy-price-cap-default-tariff-levels) is used to set the cost of electricity and gas, as inputs to running cost calculations:
                     - Annex 9 for full Tariff cost components
@@ -236,7 +239,7 @@ def about_data_page():
     with st.expander("Building an average household"):
         st.markdown("""
                     The average household is built by weighting the property archetypes according to their distribution in the English housing stock, using English Housing Survey 2019-2020. These data are safeguarded and [accessed through the UK Data Service](https://datacatalogue.ukdataservice.ac.uk/studies/study/8923?id=8923#details).
-                    There are a few caves to this approach:
+                    There are a few caveats to this approach:
                     - The distribution of property archetypes is based on English housing stock only, whereas the heat demand and installation costs are based on properties in England, Wales and Scotland.
                     - The built year distribution is based on EHS data, whereas the heat demand and installation costs are based on EPC data, so there may be some differences in the built year distribution.                    
                     """)
