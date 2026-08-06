@@ -19,8 +19,8 @@ git clone git@github.com:nestauk/asf_lifetime_cost_app.git
 
 ```
 cd asf_lifetime_costs_app
-conda create --name asf_lifetime_costs_app python==3.13
-conda activate asf_lifetime_costs_app
+conda create --name asf_lifetime_cost_app python==3.13
+conda activate asf_lifetime_cost_app
 pip install -r requirements.txt
 pip install pre-commit
 ```
@@ -28,7 +28,7 @@ pip install pre-commit
 3. Run the dashboard locally with:
 
 ```
-streamlit run lifetime_costs_app.py
+streamlit run app.py
 ```
 
 ## 🗂️ Repository structure
