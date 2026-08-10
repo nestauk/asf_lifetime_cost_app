@@ -84,6 +84,7 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
                 "installation_year:O",
                 title="Installation year",
                 axis=alt.Axis(labelAngle=0),
+                scale=alt.Scale(padding=0),
             ),
             y=alt.Y(
                 "value:Q",
@@ -328,7 +329,12 @@ def build_cashflow_chart(
         alt.Chart(cashflow_df)
         .mark_line(point=True, strokeWidth=2.5)
         .encode(
-            x=alt.X("operating_year:O", title="Year", axis=alt.Axis(labelAngle=0)),
+            x=alt.X(
+                "operating_year:O",
+                title="Year",
+                axis=alt.Axis(labelAngle=0),
+                scale=alt.Scale(padding=0),
+            ),
             y=alt.Y("value:Q", title="Yearly cost (£)"),
             color=alt.Color(
                 "system_label:N",
@@ -349,16 +355,27 @@ def build_cashflow_chart(
     )
 
 
-def build_required_subsidy_chart(required_subsidy_df: pd.DataFrame) -> alt.Chart:
-    """Line chart: required subsidy by installation year."""
-    return (
+def build_required_subsidy_chart(
+    required_subsidy_df: pd.DataFrame, current_subsidy: float = 7_500.0
+) -> alt.Chart:
+    """Line chart: required subsidy by installation year, with a dashed reference line
+    showing the current/default subsidy level for comparison.
+    """
+    installation_years = sorted(required_subsidy_df["installation_year"].unique())
+
+    line = (
         alt.Chart(required_subsidy_df)
-        .mark_line(point=True, strokeWidth=2.5, color="#18A48C")
+        .mark_line(
+            point=alt.OverlayMarkDef(filled=True, color="#0000FF"),
+            strokeWidth=2.5,
+            color="#0000FF",
+        )
         .encode(
             x=alt.X(
                 "installation_year:O",
                 title="Installation year",
                 axis=alt.Axis(labelAngle=0),
+                scale=alt.Scale(domain=installation_years, padding=0),
             ),
             y=alt.Y("required_subsidy:Q", title="Required subsidy (£)"),
             tooltip=[
@@ -368,5 +385,30 @@ def build_required_subsidy_chart(required_subsidy_df: pd.DataFrame) -> alt.Chart
                 ),
             ],
         )
-        .properties(height=340)
     )
+
+    reference_df = pd.DataFrame({"y": [current_subsidy]})
+
+    reference_line = (
+        alt.Chart(reference_df)
+        .mark_rule(strokeDash=[4, 3], color="#888", strokeWidth=1.5)
+        .encode(y=alt.Y("y:Q"))
+    )
+
+    reference_label = (
+        alt.Chart(reference_df)
+        .mark_text(
+            align="left",
+            dx=5,
+            dy=-6,
+            fontSize=11,
+            color="#444",
+            fontWeight="bold",
+            font="Averta",
+        )
+        .encode(
+            y=alt.Y("y:Q"), text=alt.value(f"Current subsidy: £{current_subsidy:,.0f}")
+        )
+    )
+
+    return alt.layer(line, reference_line, reference_label).properties(height=340)

@@ -2,14 +2,14 @@
 
 import os
 
-import streamlit as st  # For building the web app
-from PIL import Image  # For loading images
+import streamlit as st
+from PIL import Image
 
 from components.callouts import render_page_context_callout
 from components.layout import render_page_title, render_section_heading
 from page_sections.assumptions_summary import render_assumptions_summary
 from page_sections.sidebar import render_sidebar
-from results.charts import build_required_subsidy_chart
+from page_sections.subsidy_solver_outputs import render_required_subsidy_chart_section
 from results.compute import build_required_subsidy_df
 
 # Get the current directory to load images and other resources
@@ -41,25 +41,8 @@ render_page_context_callout(
 
 required_subsidy_df = build_required_subsidy_df(user_inputs)
 
-render_section_heading("Subsidy needed to reach parity, by installation year")
-
-with st.container(border=True):
-    st.markdown(
-        '<div style="font-size:14px; color:#0F294A; margin-bottom:12px;">'
-        "Installation year (2026–2035) against required subsidy (£).</div>",
-        unsafe_allow_html=True,
-    )
-    chart = build_required_subsidy_chart(required_subsidy_df)
-    st.altair_chart(chart, use_container_width=True)
-
-    with st.expander("▾ View underlying data"):
-        st.dataframe(required_subsidy_df, use_container_width=True)
-        st.download_button(
-            "⬇ Export CSV",
-            data=required_subsidy_df.to_csv(index=False),
-            file_name="required_subsidy_by_installation_year.csv",
-            mime="text/csv",
-        )
+# --- Output #1 ---#
+render_required_subsidy_chart_section(required_subsidy_df)
 
 # ---Assumptions table ---#
 render_section_heading(" ")
