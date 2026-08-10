@@ -6,3 +6,7 @@ openpyxl
 botocore
 boto3
 git+https://github.com/nestauk/asf_lifetime_cost_model.git
+pyyaml
+pandas>=2.3.1,<3.0
+pyarrow<20
+pyarrow<20

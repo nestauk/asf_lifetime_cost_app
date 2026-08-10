@@ -1,0 +1,354 @@
+"""Altair charts built from comparison_df / annual_breakdown_df.
+
+Pure charting functions — take a DataFrame, return an alt.Chart. No
+Streamlit imports, no model imports; this file only knows about pandas
+and Altair.
+"""
+
+import altair as alt
+import pandas as pd
+
+SYSTEM_COLORS = {
+    "Heat pump": "#18A48C",
+    "Heat pump (no subsidy)": "#A59BEE",
+    "Gas boiler": "#0F294A",
+}
+SYSTEM_LABELS = {
+    "Heat pump": "Air-to-water heat pump",
+    "Heat pump (no subsidy)": "Air-to-water heat pump (no subsidy)",
+    "Gas boiler": "Gas boiler",
+}
+COMPONENT_ORDER = [
+    "Equivalent Annual Cost: capital cost",
+    "Equivalent Annual Cost: loan interest",
+    "Equivalent Annual Cost: maintenance cost",
+    "Equivalent Annual Cost: running cost",
+]
+COMPONENT_LABELS = {
+    "Equivalent Annual Cost: capital cost": "Capital cost",
+    "Equivalent Annual Cost: loan interest": "Loan interest",
+    "Equivalent Annual Cost: maintenance cost": "Maintenance",
+    "Equivalent Annual Cost: running cost": "Running cost",
+}
+COMPONENT_COLORS = {
+    "Capital cost": "#0000FF",
+    "Loan interest": "#F6A4B7",
+    "Maintenance": "#97D9E3",
+    "Running cost": "#FF6E47",
+}
+
+EAC_METRIC = "Annualised discounted lifetime cost (Equivalent Annual Cost)"
+ANNUAL_COST_METRIC = "Discounted annual cost"
+
+# Canonical ordering for the three-system charts/filters, and its label/color
+# projections, so callers don't each re-derive or re-hardcode these lists.
+SYSTEM_ORDER = ["Heat pump", "Heat pump (no subsidy)", "Gas boiler"]
+SYSTEM_LABEL_ORDER = [SYSTEM_LABELS[s] for s in SYSTEM_ORDER]
+SYSTEM_COLOR_RANGE = [SYSTEM_COLORS[s] for s in SYSTEM_ORDER]
+
+
+def get_eac(comparison_df: pd.DataFrame, installation_year: int, system: str) -> float:
+    """Look up a single system's Equivalent Annual Cost for one installation year."""
+    return comparison_df[
+        (comparison_df["installation_year"] == installation_year)
+        & (comparison_df["system"] == system)
+        & (comparison_df["metric"] == EAC_METRIC)
+    ]["value"].iloc[0]
+
+
+# ---------------------------------------------------------------------------
+#  Annualised lifetime cost by installation year
+# ---------------------------------------------------------------------------
+
+
+def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
+    """Line chart: annualised lifetime cost (EAC) by installation year, one line per system."""
+    eac_df = comparison_df[comparison_df["metric"] == EAC_METRIC].copy()
+    eac_df["system_label"] = eac_df["system"].map(SYSTEM_LABELS)
+
+    # Compute the y-axis domain from the actual data, with ~10% padding on
+    # each side, rather than a fixed range
+    data_min = eac_df["value"].min()
+    data_max = eac_df["value"].max()
+    data_range = data_max - data_min
+    padding = (
+        data_range * 0.15 if data_range > 0 else data_max * 0.1
+    )  # fallback if all values are identical
+    y_domain = [max(0, data_min - padding), data_max + padding]
+
+    return (
+        alt.Chart(eac_df)
+        .mark_line(point=True, strokeWidth=2.5)
+        .encode(
+            x=alt.X(
+                "installation_year:O",
+                title="Installation year",
+                axis=alt.Axis(labelAngle=0),
+            ),
+            y=alt.Y(
+                "value:Q",
+                title="Annualised lifetime cost (£)",
+                scale=alt.Scale(domain=y_domain),
+                axis=alt.Axis(tickCount=6),
+            ),
+            color=alt.Color(
+                "system_label:N",
+                title=None,
+                sort=SYSTEM_LABEL_ORDER,
+                scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
+                legend=alt.Legend(orient="bottom", labelLimit=300),
+            ),
+            tooltip=[
+                alt.Tooltip("system_label:N", title="System"),
+                alt.Tooltip("installation_year:O", title="Installation year"),
+                alt.Tooltip("value:Q", title="EAC (£)", format=",.0f"),
+            ],
+        )
+        .properties(
+            height=340, padding={"top": 20, "bottom": 10, "left": 10, "right": 10}
+        )
+    )
+
+
+def _value_for_label(year_df: pd.DataFrame, system_label: str) -> float:
+    return year_df[year_df["system_label"] == system_label]["value"].iloc[0]
+
+
+def build_eac_headline_messages(eac_df: pd.DataFrame) -> list[str]:
+    """Build the full set of headline messages: cost comparison, subsidy effect, and trend consistency."""
+    messages = []
+
+    # --- Direct comparison in the first installation year ---
+    first_year = eac_df["installation_year"].min()
+    year_df = eac_df[eac_df["installation_year"] == first_year]
+
+    heat_pump_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump"])
+    gas_boiler_eac = _value_for_label(year_df, SYSTEM_LABELS["Gas boiler"])
+    difference = heat_pump_eac - gas_boiler_eac
+
+    comparison_word = "more" if difference > 0 else "less"
+    messages.append(
+        f"A heat pump installed in {first_year} costs <strong>£{abs(difference):,.0f}</strong> "
+        f"{comparison_word} a year than a gas boiler."
+    )
+
+    # --- Subsidy effect, in the first installation year ---
+    no_subsidy_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump (no subsidy)"])
+    subsidy_saving = no_subsidy_eac - heat_pump_eac
+    messages.append(
+        f"The subsidy saves <strong>£{subsidy_saving:,.0f}</strong> a year on the heat pump's cost."
+    )
+
+    # --- Winner across installation years ---
+    pivot = eac_df.pivot(
+        index="installation_year", columns="system_label", values="value"
+    )
+    hp_col, gb_col = SYSTEM_LABELS["Heat pump"], SYSTEM_LABELS["Gas boiler"]
+    diff_series = pivot[hp_col] - pivot[gb_col]
+
+    if (diff_series > 0).all():
+        messages.append(
+            "The gas boiler stays cheaper across every installation year shown."
+        )
+    elif (diff_series < 0).all():
+        messages.append(
+            "The heat pump stays cheaper across every installation year shown."
+        )
+    else:
+        crossover_year = diff_series[
+            diff_series.apply(lambda x: x * diff_series.iloc[0] < 0)
+        ].index.min()
+        messages.append(
+            f"The cheaper option switches around <strong>{crossover_year}</strong>."
+        )
+
+    return messages
+
+
+# ---------------------------------------------------------------------------
+#  Annualised lifetime cost breakdown for a chosen install year
+# ---------------------------------------------------------------------------
+
+
+def build_cost_breakdown_chart(
+    comparison_df: pd.DataFrame, installation_year: int
+) -> alt.Chart:
+    """Stacked bar: EAC broken into upfront/loan interest/maintenance/running cost, for one installation year."""
+    breakdown_df = comparison_df[
+        (comparison_df["installation_year"] == installation_year)
+        & (comparison_df["metric"].isin(COMPONENT_ORDER))
+        & (comparison_df["system"].isin(["Heat pump", "Gas boiler"]))
+    ].copy()
+    breakdown_df["system_label"] = breakdown_df["system"].map(SYSTEM_LABELS)
+    breakdown_df["component_label"] = breakdown_df["metric"].map(COMPONENT_LABELS)
+
+    component_label_order = [COMPONENT_LABELS[c] for c in COMPONENT_ORDER]
+    component_rank = {label: i for i, label in enumerate(component_label_order)}
+    breakdown_df["component_rank"] = breakdown_df["component_label"].map(component_rank)
+
+    color_range = [COMPONENT_COLORS[c] for c in component_label_order]
+    system_order = [SYSTEM_LABELS[s] for s in ["Heat pump", "Gas boiler"]]
+
+    heat_pump_eac = get_eac(comparison_df, installation_year, "Heat pump")
+    no_subsidy_eac = get_eac(comparison_df, installation_year, "Heat pump (no subsidy)")
+    subsidy_saving = no_subsidy_eac - heat_pump_eac
+
+    # Shared y-domain across every layer
+    max_value = max(
+        breakdown_df.groupby("system_label")["value"].sum().max(), no_subsidy_eac
+    )
+    y_domain = [0, max_value * 1.15]
+    y_scale = alt.Scale(domain=y_domain)
+
+    x_enc = alt.X(
+        "system_label:N",
+        title=None,
+        sort=system_order,
+        axis=alt.Axis(labelAngle=0, labelLimit=200, labelFontWeight="bold"),
+    )
+
+    bars = (
+        alt.Chart(breakdown_df)
+        .mark_bar(size=170)
+        .encode(
+            x=x_enc,
+            y=alt.Y(
+                "value:Q",
+                title="Annualised lifetime cost (£)",
+                stack="zero",
+                scale=y_scale,
+            ),
+            color=alt.Color(
+                "component_label:N",
+                title="Cost component",
+                sort=component_label_order,
+                scale=alt.Scale(domain=component_label_order, range=color_range),
+                legend=None,
+            ),
+            order=alt.Order("component_rank:Q", sort="ascending"),
+            tooltip=[
+                alt.Tooltip("system_label:N", title="System"),
+                alt.Tooltip("component_label:N", title="Component"),
+                alt.Tooltip("value:Q", title="£/year", format=",.0f"),
+            ],
+        )
+    )
+
+    breakdown_df_sorted = breakdown_df.sort_values(["system_label", "component_rank"])
+    breakdown_df_sorted["cum_end"] = breakdown_df_sorted.groupby("system_label")[
+        "value"
+    ].cumsum()
+    breakdown_df_sorted["cum_start"] = (
+        breakdown_df_sorted["cum_end"] - breakdown_df_sorted["value"]
+    )
+    breakdown_df_sorted["mid"] = (
+        breakdown_df_sorted["cum_start"] + breakdown_df_sorted["cum_end"]
+    ) / 2
+
+    labels_df = breakdown_df_sorted[breakdown_df_sorted["value"] > 100]
+
+    labels = (
+        alt.Chart(labels_df)
+        .transform_calculate(label_text="'£' + format(datum.value, ',.0f')")
+        .mark_text(color="white", fontSize=11, font="Averta")
+        .encode(
+            x=x_enc,
+            y=alt.Y("mid:Q"),
+            text=alt.Text("label_text:N"),
+            order=alt.Order("component_rank:Q", sort="ascending"),
+            tooltip=alt.value(None),
+        )
+    )
+    annotation_df = pd.DataFrame(
+        {
+            "system_label": ["Air-to-water heat pump"],
+            "y_bottom": [heat_pump_eac],
+            "y_top": [no_subsidy_eac],
+        }
+    )
+
+    subsidy_box = (
+        alt.Chart(annotation_df)
+        .mark_rect(
+            fill=None,
+            stroke="#888",
+            strokeDash=[4, 3],
+            strokeWidth=1.5,
+            width=170,
+        )
+        .encode(
+            x=x_enc,
+            y=alt.Y("y_bottom:Q", scale=y_scale),
+            y2=alt.Y2("y_top:Q"),
+        )
+    )
+
+    subsidy_label = (
+        alt.Chart(annotation_df)
+        .mark_text(
+            align="left",
+            dx=-60,
+            dy=-14,
+            fontSize=11,
+            color="#444",
+            # fontWeight="bold",
+            font="Averta",
+        )
+        .encode(
+            x=x_enc,
+            y=alt.Y("y_top:Q", scale=y_scale),
+            text=alt.value(f"Subsidy saving: £{subsidy_saving:,.0f}/year"),
+        )
+    )
+
+    return (
+        alt.layer(bars, labels, subsidy_box, subsidy_label)
+        .properties(height=380)
+        .configure_view(clip=False)
+    )
+
+
+# ---------------------------------------------------------------------------
+#  Cost during each year of heating system's lifespan
+# ---------------------------------------------------------------------------
+
+
+def build_cashflow_chart(
+    annual_breakdown_df: pd.DataFrame, installation_year: int
+) -> alt.Chart:
+    """Line chart: total yearly cost by year of ownership, one line per system."""
+    cashflow_df = annual_breakdown_df[
+        (annual_breakdown_df["installation_year"] == installation_year)
+        & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
+        & (annual_breakdown_df["system"].isin(SYSTEM_ORDER))
+    ].copy()
+    cashflow_df["system_label"] = cashflow_df["system"].map(SYSTEM_LABELS)
+    cashflow_df["year_of_ownership"] = cashflow_df["operating_year"] - installation_year
+
+    return (
+        alt.Chart(cashflow_df)
+        .mark_line(point=True, strokeWidth=2.5)
+        .encode(
+            x=alt.X(
+                "year_of_ownership:O",
+                title="Year of ownership",
+                axis=alt.Axis(labelAngle=0),
+            ),
+            y=alt.Y("value:Q", title="Yearly cost (£)"),
+            color=alt.Color(
+                "system_label:N",
+                title=None,
+                sort=SYSTEM_LABEL_ORDER,
+                scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
+                legend=alt.Legend(
+                    orient="bottom", columns=3, labelLimit=300, symbolLimit=0
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip("system_label:N", title="System"),
+                alt.Tooltip("year_of_ownership:O", title="Year of ownership"),
+                alt.Tooltip("value:Q", title="£/year", format=",.0f"),
+            ],
+        )
+        .properties(height=340)
+    )

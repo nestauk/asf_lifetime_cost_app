@@ -31,14 +31,22 @@ NESTA_COLOURS = [
 
 @alt.theme.register("nestafont", enable=True)
 def nestafont():
-    """Define Nesta fonts"""
     return alt.theme.ThemeConfig(
         {
             "config": {
                 "title": {"font": TITLE_FONT, "anchor": "start"},
-                "axis": {"labelFont": FONT, "titleFont": FONT},
+                "axis": {
+                    "labelFont": FONT,
+                    "labelColor": "#0F294A",
+                    "titleFont": FONT,
+                    "titleColor": "#0F294A",
+                },
                 "header": {"labelFont": FONT, "titleFont": FONT},
-                "legend": {"labelFont": FONT, "titleFont": FONT},
+                "legend": {
+                    "labelFont": FONT,
+                    "labelColor": "#0F294A",
+                    "titleFont": FONT,
+                },
                 "range": {
                     "category": NESTA_COLOURS,
                     "ordinal": {"scheme": NESTA_COLOURS},

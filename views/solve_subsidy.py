@@ -6,7 +6,7 @@ import streamlit as st  # For building the web app
 from PIL import Image  # For loading images
 
 from components.layout import render_page_title, render_section_heading
-from model_inputs.sidebar import render_sidebar
+from page_sections.sidebar import render_sidebar
 
 # Get the current directory to load images and other resources
 current_dir = os.getcwd()
