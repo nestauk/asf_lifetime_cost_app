@@ -7,6 +7,13 @@ from components.layout import render_section_heading
 from config.defaults import (
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
+    OPERATING_END_YEAR,
+    OPERATING_START_YEAR,
+)
+from model_integration.schema import AppInputs
+from model_integration.trajectories import (
+    build_electricity_prices,
+    build_gas_prices,
 )
 from results.charts import (
     ANNUAL_COST_METRIC,
@@ -23,6 +30,7 @@ from results.charts import (
 )
 
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
+OPERATING_YEARS = range(OPERATING_START_YEAR, OPERATING_END_YEAR + 1)
 
 
 def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
@@ -170,3 +178,41 @@ def render_eac_breakdown_section(
                 file_name="cost_of_ownership_annual_breakdown.csv",
                 mime="text/csv",
             )
+
+
+def render_price_ratio_table(inputs: AppInputs) -> None:
+    """Render the electricity-to-gas price ratio table: one column per year."""
+    electricity_prices = build_electricity_prices(inputs)
+    gas_prices = build_gas_prices(inputs)
+
+    price_ratio_by_year = {
+        year: electricity_prices.get_price(year=year) / gas_prices.get_price(year=year)
+        for year in OPERATING_YEARS
+    }
+
+    header_cells = "".join(
+        f'<th style="padding:4px 11px; text-align:center; font-weight:700; color:#0F294A;">{year}</th>'
+        for year in OPERATING_YEARS
+    )
+    value_cells = "".join(
+        f'<td style="padding:4px 11px; text-align:center; color:#0F294A;">{price_ratio_by_year[year]:.2f}</td>'
+        for year in OPERATING_YEARS
+    )
+
+    st.markdown(
+        f"""
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:13px; min-width:900px;">
+                <tr style="background:#DDD9D6;">
+                    <th style="padding:4px 11px; text-align:left; font-weight:700; color:#0F294A; white-space:nowrap;">Year</th>
+                    {header_cells}
+                </tr>
+                <tr style="background:#fff;">
+                    <td style="padding:4px 11px; font-weight:700; color:#0F294A; white-space:nowrap;">Electricity to gas price ratio</td>
+                    {value_cells}
+                </tr>
+            </table>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )

@@ -10,6 +10,7 @@ from page_sections.assumptions_summary import render_assumptions_summary
 from page_sections.comparison_outputs import (
     render_eac_breakdown_section,
     render_eac_by_year_section,
+    render_price_ratio_table,
 )
 from page_sections.sidebar import render_sidebar
 from results.compute import build_annual_breakdown_df, build_comparison_df
@@ -43,6 +44,9 @@ render_eac_by_year_section(comparison_df)
 
 # --- Output #2 ---#
 render_eac_breakdown_section(comparison_df, annual_breakdown_df)
+
+# --- Price ratio table --- #
+render_price_ratio_table(user_inputs)
 
 # ---Assumptions table ---#
 render_section_heading(" ")

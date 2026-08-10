@@ -316,24 +316,19 @@ def build_cost_breakdown_chart(
 def build_cashflow_chart(
     annual_breakdown_df: pd.DataFrame, installation_year: int
 ) -> alt.Chart:
-    """Line chart: total yearly cost by year of ownership, one line per system."""
+    """Line chart: total yearly cost by calendar year, one line per system."""
     cashflow_df = annual_breakdown_df[
         (annual_breakdown_df["installation_year"] == installation_year)
         & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
         & (annual_breakdown_df["system"].isin(SYSTEM_ORDER))
     ].copy()
     cashflow_df["system_label"] = cashflow_df["system"].map(SYSTEM_LABELS)
-    cashflow_df["year_of_ownership"] = cashflow_df["operating_year"] - installation_year
 
     return (
         alt.Chart(cashflow_df)
         .mark_line(point=True, strokeWidth=2.5)
         .encode(
-            x=alt.X(
-                "year_of_ownership:O",
-                title="Year of ownership",
-                axis=alt.Axis(labelAngle=0),
-            ),
+            x=alt.X("operating_year:O", title="Year", axis=alt.Axis(labelAngle=0)),
             y=alt.Y("value:Q", title="Yearly cost (£)"),
             color=alt.Color(
                 "system_label:N",
@@ -346,7 +341,7 @@ def build_cashflow_chart(
             ),
             tooltip=[
                 alt.Tooltip("system_label:N", title="System"),
-                alt.Tooltip("year_of_ownership:O", title="Year of ownership"),
+                alt.Tooltip("operating_year:O", title="Year"),
                 alt.Tooltip("value:Q", title="£/year", format=",.0f"),
             ],
         )
