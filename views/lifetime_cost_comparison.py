@@ -2,8 +2,8 @@
 
 import os
 
-import streamlit as st  # For building the web app
-from PIL import Image  # For loading images
+import streamlit as st
+from PIL import Image
 
 from components.layout import render_page_title, render_section_heading
 from page_sections.assumptions_summary import render_assumptions_summary
