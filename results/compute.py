@@ -260,7 +260,7 @@ def build_annual_breakdown_rows(
                             discount_rate=DISCOUNT_RATE_DEFAULT
                         )
                     )
-                    capital_cost = system.upfront_cost
+                    capital_cost = system.capital_cost
                 else:
                     discounted_capital_cost = 0.0
                     capital_cost = 0.0
