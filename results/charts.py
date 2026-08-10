@@ -347,3 +347,26 @@ def build_cashflow_chart(
         )
         .properties(height=340)
     )
+
+
+def build_required_subsidy_chart(required_subsidy_df: pd.DataFrame) -> alt.Chart:
+    """Line chart: required subsidy by installation year."""
+    return (
+        alt.Chart(required_subsidy_df)
+        .mark_line(point=True, strokeWidth=2.5, color="#18A48C")
+        .encode(
+            x=alt.X(
+                "installation_year:O",
+                title="Installation year",
+                axis=alt.Axis(labelAngle=0),
+            ),
+            y=alt.Y("required_subsidy:Q", title="Required subsidy (£)"),
+            tooltip=[
+                alt.Tooltip("installation_year:O", title="Installation year"),
+                alt.Tooltip(
+                    "required_subsidy:Q", title="Required subsidy (£)", format=",.0f"
+                ),
+            ],
+        )
+        .properties(height=340)
+    )

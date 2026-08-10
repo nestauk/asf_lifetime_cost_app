@@ -302,3 +302,46 @@ def build_annual_breakdown_df(inputs: AppInputs) -> pd.DataFrame:
         for row in build_annual_breakdown_rows(inputs, installation_year)
     ]
     return pd.DataFrame(all_rows)
+
+
+def build_required_subsidy_df(inputs: AppInputs) -> pd.DataFrame:
+    """Solve for the subsidy the heat pump would need, for parity with the gas
+    boiler, for every installation year.
+    """
+    rows = []
+
+    for installation_year in INSTALLATION_YEARS:
+        heat_pump, _, gas_boiler = build_systems_for_year(inputs, installation_year)
+
+        ashp_heat_demand, boiler_heat_demand = _heat_demands(inputs)
+        ashp_electricity_prices = build_ashp_electricity_prices(inputs)
+        gas_prices = build_gas_prices(inputs)
+        gas_standing_charge = (
+            inputs.gas_boiler.standing_charge
+            if inputs.gas_boiler.include_standing_charge
+            else 0.0
+        )
+
+        gas_boiler_eac = gas_boiler.calculate_annualised_discounted_lifetime_cost(
+            heat_demand=boiler_heat_demand,
+            energy_price_trajectory=gas_prices,
+            standing_charge=gas_standing_charge,
+            discount_rate=DISCOUNT_RATE_DEFAULT,
+        )
+
+        required_subsidy = heat_pump.solve_subsidy_for_parity(
+            heat_demand=ashp_heat_demand,
+            energy_price_trajectory=ashp_electricity_prices,
+            target_eac=gas_boiler_eac,
+            discount_rate=DISCOUNT_RATE_DEFAULT,
+        )
+
+        rows.append(
+            {
+                "installation_year": installation_year,
+                "gas_boiler_eac": gas_boiler_eac,
+                "required_subsidy": required_subsidy,
+            }
+        )
+
+    return pd.DataFrame(rows)

@@ -761,7 +761,9 @@ def render_gas_boiler_section() -> GasBoilerInputs:
 # ---------------------------------------------------------------------------
 #  Building whole sidebar
 # ---------------------------------------------------------------------------
-def render_sidebar() -> dict:
+def render_sidebar(
+    solve_for_subsidy: bool = False, solve_for_electricity: bool = False
+) -> dict:
     if "reset_generation" not in st.session_state:
         st.session_state["reset_generation"] = 0
 
@@ -769,8 +771,10 @@ def render_sidebar() -> dict:
         render_fixed_inputs()
         render_user_inputs_heading()
         hp_heat_demand_uplift = render_household_section()
-        energy_prices = render_energy_prices_section()
-        heat_pump = render_heat_pump_section()
+        energy_prices = render_energy_prices_section(
+            solve_for_electricity=solve_for_electricity
+        )
+        heat_pump = render_heat_pump_section(solve_for_subsidy=solve_for_subsidy)
         gas_boiler = render_gas_boiler_section()
 
         st.divider()
