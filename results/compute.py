@@ -357,3 +357,132 @@ def build_required_subsidy_df(inputs: AppInputs) -> pd.DataFrame:
         )
 
     return pd.DataFrame(rows)
+
+
+def build_required_electricity_prices(
+    inputs: AppInputs, installation_year: int
+) -> dict[int, float]:
+    """Solve for the electricity price cap rate (p/kWh, one value per operating
+    year, before the time-of-use discount) the heat pump installed in this
+    year would need for the household to reach parity with a gas boiler.
+
+    Solves using the ToU-discounted trajectory, since that's what actually
+    determines the heat pump's running cost — then converts the result back
+    to the headline price cap rate for reporting.
+    """
+    heat_pump, _, gas_boiler = build_systems_for_year(inputs, installation_year)
+
+    ashp_heat_demand, boiler_heat_demand = _heat_demands(inputs)
+    gas_prices = build_gas_prices(inputs)
+    gas_standing_charge = (
+        inputs.gas_boiler.standing_charge
+        if inputs.gas_boiler.include_standing_charge
+        else 0.0
+    )
+
+    gas_boiler_eac = gas_boiler.calculate_annualised_discounted_lifetime_cost(
+        heat_demand=boiler_heat_demand,
+        energy_price_trajectory=gas_prices,
+        standing_charge=gas_standing_charge,
+        discount_rate=DISCOUNT_RATE_DEFAULT,
+    )
+
+    # Solve using the ToU-discounted trajectory
+    # what actually determines the heat pump's running cost
+    ashp_electricity_prices = build_ashp_electricity_prices(inputs)
+
+    required_effective_electricity_prices = (
+        heat_pump.solve_electricity_price_for_parity(
+            heat_demand=ashp_heat_demand,
+            energy_price_trajectory=ashp_electricity_prices,
+            target_eac=gas_boiler_eac,
+            discount_rate=DISCOUNT_RATE_DEFAULT,
+        )
+    )
+
+    # Convert solved effective (ToU-discounted) prices back to the headline
+    # price cap rate for reporting
+    tou_tariff_discount = inputs.heat_pump.tou_tariff_discount
+    required_price_cap_rates = {
+        year: effective_price / (1 - tou_tariff_discount)
+        for year, effective_price in required_effective_electricity_prices.items()
+    }
+
+    return required_price_cap_rates
+
+
+def build_required_price_ratio(
+    required_price_cap_rates: dict[int, float], gas_prices_by_year: dict[int, float]
+) -> dict[int, float]:
+    """Ratio of required electricity price to actual gas price, per year — the
+    'target elec-gas price ratio' a household would need for parity.
+    """
+    return {
+        year: required_price_cap_rates[year] / gas_prices_by_year[year]
+        for year in required_price_cap_rates
+    }
+
+
+def build_required_electricity_price_summary_df(
+    inputs: AppInputs, installation_year: int
+) -> pd.DataFrame:
+    """One row per operating year of the heat pump's lifetime (for the chosen
+    installation year): gas boiler EAC, heat pump EAC at today's electricity
+    price, the required rate for parity that year, and the implied ratio to
+    gas that year.
+    """
+    gas_prices = build_gas_prices(inputs)
+
+    heat_pump, _, gas_boiler = build_systems_for_year(inputs, installation_year)
+    ashp_heat_demand, boiler_heat_demand = _heat_demands(inputs)
+    gas_standing_charge = (
+        inputs.gas_boiler.standing_charge
+        if inputs.gas_boiler.include_standing_charge
+        else 0.0
+    )
+
+    gas_boiler_eac = gas_boiler.calculate_annualised_discounted_lifetime_cost(
+        heat_demand=boiler_heat_demand,
+        energy_price_trajectory=gas_prices,
+        standing_charge=gas_standing_charge,
+        discount_rate=DISCOUNT_RATE_DEFAULT,
+    )
+
+    ashp_electricity_prices = build_ashp_electricity_prices(inputs)
+    heat_pump_eac_today = heat_pump.calculate_annualised_discounted_lifetime_cost(
+        heat_demand=ashp_heat_demand,
+        energy_price_trajectory=ashp_electricity_prices,
+        discount_rate=DISCOUNT_RATE_DEFAULT,
+    )
+
+    required_effective_prices = heat_pump.solve_electricity_price_for_parity(
+        heat_demand=ashp_heat_demand,
+        energy_price_trajectory=ashp_electricity_prices,
+        target_eac=gas_boiler_eac,
+        discount_rate=DISCOUNT_RATE_DEFAULT,
+    )
+
+    tou_tariff_discount = inputs.heat_pump.tou_tariff_discount
+
+    rows = []
+    for operating_year in sorted(required_effective_prices.keys()):
+        required_rate = required_effective_prices[operating_year] / (
+            1 - tou_tariff_discount
+        )
+        gas_price_that_year = gas_prices.get_price(year=operating_year)
+        implied_ratio = (
+            required_rate / gas_price_that_year if required_rate > 0 else None
+        )
+
+        rows.append(
+            {
+                "operating_year": operating_year,
+                "gas_boiler_eac": gas_boiler_eac,
+                "heat_pump_eac_today": heat_pump_eac_today,
+                "gas_price": gas_price_that_year,
+                "required_rate": required_rate,
+                "implied_ratio": implied_ratio,
+            }
+        )
+
+    return pd.DataFrame(rows)

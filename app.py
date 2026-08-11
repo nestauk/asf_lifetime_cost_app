@@ -43,8 +43,8 @@ solve_subsidy_page = st.Page(
     icon="🎯",
 )
 solve_electricity_price_page = st.Page(
-    "views/solve_electricity_price.py",
-    title="Solve for electricity price",
+    "views/solve_price_ratio.py",
+    title="Solve for electricity-gas price ratio",
     icon="⚡",
 )
 methodology_page = st.Page(

@@ -412,3 +412,153 @@ def build_required_subsidy_chart(
     )
 
     return alt.layer(line, reference_line, reference_label).properties(height=340)
+
+
+def build_required_electricity_price_chart(
+    required_price_cap_rates: dict[int, float],
+    current_price_cap_rate: float | None = None,
+) -> alt.Chart:
+    """Line chart: required electricity price cap rate by operating year, for one
+    installation year's heat pump. Optionally overlays a dashed reference line
+    showing today's actual price cap rate, for comparison.
+    """
+    price_df = pd.DataFrame(
+        {
+            "operating_year": list(required_price_cap_rates.keys()),
+            "required_price": list(required_price_cap_rates.values()),
+        }
+    )
+
+    line = (
+        alt.Chart(price_df)
+        .mark_line(
+            point=alt.OverlayMarkDef(filled=True, color="#18A48C"),
+            strokeWidth=2.5,
+            color="#18A48C",
+        )
+        .encode(
+            x=alt.X(
+                "operating_year:O",
+                title="Year",
+                axis=alt.Axis(labelAngle=0),
+                scale=alt.Scale(
+                    domain=sorted(required_price_cap_rates.keys()), padding=0
+                ),
+            ),
+            y=alt.Y("required_price:Q", title="Required electricity price (p/kWh)"),
+            tooltip=[
+                alt.Tooltip("operating_year:O", title="Year"),
+                alt.Tooltip(
+                    "required_price:Q", title="Required price (p/kWh)", format=",.1f"
+                ),
+            ],
+        )
+    )
+
+    if current_price_cap_rate is None:
+        return line.properties(height=340)
+
+    reference_df = pd.DataFrame({"y": [current_price_cap_rate]})
+
+    reference_line = (
+        alt.Chart(reference_df)
+        .mark_rule(strokeDash=[4, 3], color="#888", strokeWidth=1.5)
+        .encode(y=alt.Y("y:Q"))
+    )
+
+    reference_label = (
+        alt.Chart(reference_df)
+        .mark_text(
+            align="left",
+            dx=5,
+            dy=-6,
+            fontSize=11,
+            color="#444",
+            fontWeight="bold",
+            font="Averta",
+        )
+        .encode(
+            y=alt.Y("y:Q"),
+            text=alt.value(f"Current price cap: {current_price_cap_rate:.1f}p/kWh"),
+        )
+    )
+
+    return alt.layer(line, reference_line, reference_label).properties(height=340)
+
+
+def build_required_price_ratio_chart(
+    required_ratio_by_year: dict[int, float], current_ratio: float | None = None
+) -> alt.Chart:
+    """Line chart: required electricity-to-gas price ratio by operating year, with data labels."""
+    ratio_df = pd.DataFrame(
+        {
+            "operating_year": list(required_ratio_by_year.keys()),
+            "ratio": list(required_ratio_by_year.values()),
+        }
+    )
+    years_sorted = sorted(required_ratio_by_year.keys())
+
+    x_enc = alt.X(
+        "operating_year:O",
+        title="Year",
+        axis=alt.Axis(labelAngle=0),
+        scale=alt.Scale(domain=years_sorted, padding=0),
+    )
+
+    line = (
+        alt.Chart(ratio_df)
+        .mark_line(
+            point=alt.OverlayMarkDef(filled=True, color="#0000FF"),
+            strokeWidth=2.5,
+            color="#0000FF",
+        )
+        .encode(
+            x=x_enc,
+            y=alt.Y("ratio:Q", title="Required electricity-to-gas price ratio"),
+            tooltip=[
+                alt.Tooltip("operating_year:O", title="Year"),
+                alt.Tooltip("ratio:Q", title="Required ratio", format=",.2f"),
+            ],
+        )
+    )
+
+    labels = (
+        alt.Chart(ratio_df)
+        .mark_text(
+            dy=-14, fontSize=11, fontWeight="bold", color="#0000FF", font="Averta"
+        )
+        .encode(
+            x=x_enc,
+            y=alt.Y("ratio:Q"),
+            text=alt.Text("ratio:Q", format=".2f"),
+            tooltip=alt.value(None),
+        )
+    )
+
+    layers = [line, labels]
+
+    if current_ratio is not None:
+        reference_df = pd.DataFrame({"y": [current_ratio]})
+        reference_line = (
+            alt.Chart(reference_df)
+            .mark_rule(strokeDash=[4, 3], color="#888", strokeWidth=1.5)
+            .encode(y=alt.Y("y:Q"))
+        )
+        reference_label = (
+            alt.Chart(reference_df)
+            .mark_text(
+                align="left",
+                dx=5,
+                dy=-6,
+                fontSize=11,
+                color="#444",
+                fontWeight="bold",
+                font="Averta",
+            )
+            .encode(
+                y=alt.Y("y:Q"), text=alt.value(f"Current ratio: {current_ratio:.2f}")
+            )
+        )
+        layers.extend([reference_line, reference_label])
+
+    return alt.layer(*layers).properties(height=340)
