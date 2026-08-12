@@ -9,8 +9,6 @@ tidy pandas DataFrame.
 import pandas as pd
 
 from config.defaults import (
-    ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND,
-    ASHP_SPACE_HEAT_DEMAND,
     DISCOUNT_RATE_DEFAULT,
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
@@ -28,14 +26,11 @@ INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 def _heat_demands(inputs: AppInputs) -> tuple[float, float]:
     """Return (ashp_heat_demand, boiler_heat_demand), both in kWh/year.
 
-    ashp_heat_demand already includes the uplift (ASHPs run at lower flow
-    temperatures for longer, raising total heat demand relative to a gas
-    boiler in the same property). boiler_heat_demand is derived by dividing
-    the uplift back out, so both figures describe the same physical
-    property, just reflecting each system's own demand.
+    boiler_heat_demand is the user-editable baseline (property heat need).
+    ashp_heat_demand is derived by applying the uplift on top.
     """
-    ashp_heat_demand = ASHP_SPACE_HEAT_DEMAND + ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND
-    boiler_heat_demand = ashp_heat_demand / (1 + inputs.hp_heat_demand_uplift)
+    boiler_heat_demand = inputs.boiler_heat_demand
+    ashp_heat_demand = boiler_heat_demand * (1 + inputs.heat_pump_heat_demand_uplift)
     return ashp_heat_demand, boiler_heat_demand
 
 
