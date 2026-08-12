@@ -19,7 +19,6 @@ from config.defaults import (
     BASE_YEAR_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
     INFLATION_RATE_DEFAULT,
-    PROPERTY_DESCRIPTION,
 )
 from model_integration.schema import AppInputs
 
@@ -29,6 +28,7 @@ NAVY = "#0F294A"
 TEAL = "#18A48C"
 BLUE = "#0000FF"
 PURPLE = "#9A1BBE"
+PINK = "#F6A4B7"
 
 
 def _card_open(border_color: str = NAVY, extra_style: str = "") -> str:
@@ -78,7 +78,7 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
                 The assumptions behind these results
             </div>
             <div style="font-size:13px; color:#666; margin-bottom:4px;">
-                {PROPERTY_DESCRIPTION} &middot; base year {BASE_YEAR_DEFAULT} &middot;
+                Base year {BASE_YEAR_DEFAULT} &middot;
                 {INFLATION_RATE_DEFAULT:.1%} inflation &middot; {DISCOUNT_RATE_DEFAULT:.1%} discount rate
             </div>
             <div style="font-size:13px; font-weight:700; color:{NAVY};">
@@ -90,12 +90,29 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
     )
 
     # ------------------------------------------------------------------
-    # Heat pump card (col1) / Gas boiler + Energy prices cards (col2)
+    # Household + Heat pump cards (col1) / Gas boiler + Energy prices cards (col2)
     # Each card below is opened and closed within its own st.markdown call.
     # ------------------------------------------------------------------
     col1, col2 = st.columns(2, gap="small")
 
     with col1:
+        ashp_heat_demand = inputs.boiler_heat_demand * (
+            1 + inputs.heat_pump_heat_demand_uplift
+        )
+
+        household_rows = _rows(
+            [
+                (
+                    "Heat demand met by the gas boiler",
+                    f"{inputs.boiler_heat_demand:,.0f} kWh/yr",
+                ),
+                (
+                    "Heat demand met by the heat pump",
+                    f"{ashp_heat_demand:,.0f} kWh/yr ({inputs.heat_pump_heat_demand_uplift:.0%} uplift)",
+                ),
+            ]
+        )
+
         subsidy_line = (
             "Solved for on this page"
             if hp.subsidy_scenario is None
@@ -117,10 +134,6 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
                 ("Lifespan", f"{hp.lifespan} years"),
                 ("SCOP", f"{hp.scop:.1f}"),
                 (
-                    "Time-of-use tariff discount",
-                    f"{hp.tou_tariff_discount:.0%} off the electricity unit rate price cap",
-                ),
-                (
                     "Installation",
                     f"£{hp.installation_cost_current:,.0f} in {BASE_YEAR_DEFAULT}, {installation_growth}",
                 ),
@@ -128,7 +141,11 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
                 ("Financing", financing_line),
                 (
                     "Maintenance",
-                    f"£{hp.maintenance_cost_per_visit:,.0f} a visit, {hp.maintenance_annual_frequency:.1f} visits a year",
+                    f"£{hp.maintenance_cost_per_visit:,.0f} per service, {hp.maintenance_annual_frequency:.1f} times a year",
+                ),
+                (
+                    "Time-of-use tariff discount",
+                    f"{hp.tou_tariff_discount:.0%} off the electricity unit rate price cap",
                 ),
             ]
         )
@@ -136,6 +153,10 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
         st.markdown(
             f"""
             {_card_open(border_color=NAVY)}
+                {_section_title("Household", underline_color=PINK)}
+                {household_rows}
+            </div>
+            {_card_open(border_color=NAVY, extra_style="margin-bottom:12px;")}
                 {_section_title("Heat pump", underline_color=TEAL)}
                 {heat_pump_rows}
             </div>
@@ -157,7 +178,7 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
                 ("Installation", f"£{gb.installation_cost:,.0f}, flat in real terms"),
                 (
                     "Maintenance",
-                    f"£{gb.maintenance_cost_per_visit:,.0f} a visit, {gb.maintenance_annual_frequency:.1f} visits a year",
+                    f"£{hp.maintenance_cost_per_visit:,.0f} per service, {hp.maintenance_annual_frequency:.1f} times a year",
                 ),
                 ("Standing charge", standing_charge_line),
             ]
@@ -191,13 +212,13 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
 
         st.markdown(
             f"""
-            {_card_open(border_color=NAVY, extra_style="margin-bottom:12px;")}
-                {_section_title("Gas boiler", underline_color=BLUE)}
-                {gas_boiler_rows}
-            </div>
             {_card_open(border_color=NAVY)}
                 {_section_title("Energy prices", underline_color=PURPLE)}
                 {energy_price_rows}
+            </div>
+            {_card_open(border_color=NAVY, extra_style="margin-bottom:12px;")}
+                {_section_title("Gas boiler", underline_color=BLUE)}
+                {gas_boiler_rows}
             </div>
             """,
             unsafe_allow_html=True,
@@ -240,30 +261,76 @@ def _build_assumptions_text(inputs: AppInputs) -> str:
     gb = inputs.gas_boiler
     ep = inputs.energy_prices
 
+    ashp_heat_demand = inputs.boiler_heat_demand * (
+        1 + inputs.heat_pump_heat_demand_uplift
+    )
+    subsidy_line = (
+        "Solved for on this page"
+        if hp.subsidy_scenario is None
+        else f"{hp.subsidy_scenario}, {len(hp.subsidy_overrides)} year(s) overridden"
+    )
+    financing_line = (
+        f"{hp.interest_rate:.1%} interest over {hp.loan_term} years"
+        if hp.is_financed
+        else "Not financed"
+    )
+    installation_growth = (
+        "flat in real terms"
+        if hp.installation_cost_growth_mode == "flat"
+        else f"{hp.installation_cost_growth_rate:+.1%} a year in real terms"
+    )
+    standing_charge_line = (
+        f"Included, {gb.standing_charge:.2f} p/day, held constant"
+        if gb.include_standing_charge
+        else "Not included"
+    )
+    gas_growth_desc = (
+        "flat in all future years"
+        if ep.gas_growth_mode == "flat"
+        else f"{ep.gas_growth_rate:+.1%} a year"
+        if ep.gas_growth_mode == "annual_pct"
+        else f"custom table, {len(ep.gas_overrides)} year(s) overridden"
+    )
+    if ep.electricity_current_price is None:
+        electricity_desc = "Solved for on this page"
+    elif ep.electricity_growth_mode == "flat":
+        electricity_desc = f"{ep.electricity_current_price:.2f} p/kWh in {BASE_YEAR_DEFAULT}, flat in all future years"
+    elif ep.electricity_growth_mode == "annual_pct":
+        electricity_desc = f"{ep.electricity_current_price:.2f} p/kWh in {BASE_YEAR_DEFAULT}, {ep.electricity_growth_rate:+.1%} a year"
+    else:
+        electricity_desc = (
+            f"{ep.electricity_current_price:.2f} p/kWh in {BASE_YEAR_DEFAULT}, custom table, "
+            f"{len(ep.electricity_overrides)} year(s) overridden"
+        )
+
     lines = [
         "The assumptions behind these results",
-        f"{PROPERTY_DESCRIPTION}, base year {BASE_YEAR_DEFAULT}, "
+        f"Base year {BASE_YEAR_DEFAULT}, "
         f"{INFLATION_RATE_DEFAULT:.1%} inflation, {DISCOUNT_RATE_DEFAULT:.1%} discount rate",
         f"Shown as present value, {BASE_YEAR_DEFAULT} real £",
+        "",
+        "HOUSEHOLD",
+        f"  Heat demand met by the gas boiler: {inputs.boiler_heat_demand:,.0f} kWh/yr",
+        f"  Heat demand met by the heat pump: {ashp_heat_demand:,.0f} kWh/yr ({inputs.heat_pump_heat_demand_uplift:.0%} uplift)",
         "",
         "HEAT PUMP",
         f"  Lifespan: {hp.lifespan} years",
         f"  SCOP: {hp.scop:.1f}",
-        f"  Tariff discount: {hp.tou_tariff_discount:.0%} off the electricity unit rate",
-        f"  Installation: £{hp.installation_cost_current:,.0f} in {BASE_YEAR_DEFAULT}",
-        f"  Subsidy: {hp.subsidy_scenario or 'solved for on this page'}",
-        f"  Financing: {'not financed' if not hp.is_financed else f'{hp.interest_rate:.1%} over {hp.loan_term} years'}",
-        f"  Maintenance: £{hp.maintenance_cost_per_visit:,.0f} a visit, {hp.maintenance_annual_frequency:.1f} visits a year",
+        f"  Installation: £{hp.installation_cost_current:,.0f} in {BASE_YEAR_DEFAULT}, {installation_growth}",
+        f"  Subsidy: {subsidy_line}",
+        f"  Financing: {financing_line}",
+        f"  Maintenance: £{hp.maintenance_cost_per_visit:,.0f} per service, {hp.maintenance_annual_frequency:.1f} times a year",
+        f"  Time-of-use tariff discount: {hp.tou_tariff_discount:.0%} off the electricity unit rate price cap",
         "",
         "GAS BOILER",
         f"  Lifespan: {gb.lifespan} years",
         f"  Efficiency: {gb.efficiency:.2f}",
-        f"  Installation: £{gb.installation_cost:,.0f}",
-        f"  Maintenance: £{gb.maintenance_cost_per_visit:,.0f} a visit, {gb.maintenance_annual_frequency:.1f} visits a year",
-        f"  Standing charge: {'included' if gb.include_standing_charge else 'not included'} — {gb.standing_charge:.2f} p/day",
+        f"  Installation: £{gb.installation_cost:,.0f}, flat in real terms",
+        f"  Maintenance: £{hp.maintenance_cost_per_visit:,.0f} per service, {hp.maintenance_annual_frequency:.1f} times a year",
+        f"  Standing charge: {standing_charge_line}",
         "",
         "ENERGY PRICES",
-        f"  Gas: {ep.gas_current_price:.2f} p/kWh",
-        f"  Electricity: {'solved for on this page' if ep.electricity_current_price is None else f'{ep.electricity_current_price:.2f} p/kWh'}",
+        f"  Gas: {ep.gas_current_price:.2f} p/kWh, {gas_growth_desc}",
+        f"  Electricity: {electricity_desc}",
     ]
     return "\n".join(lines)

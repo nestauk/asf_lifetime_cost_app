@@ -44,8 +44,6 @@ render_eac_by_year_section(comparison_df)
 
 # --- Output #2 ---#
 render_eac_breakdown_section(comparison_df, annual_breakdown_df)
-# TODO add total annualised lifetime cost somewhere
-# TODO make the bars closer together to be able to compare
 
 # --- Price ratio table --- #
 render_price_ratio_table(user_inputs)

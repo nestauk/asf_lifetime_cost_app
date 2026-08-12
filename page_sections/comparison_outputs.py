@@ -101,24 +101,38 @@ def render_eac_breakdown_section(
         st.altair_chart(chart)
 
         # --- Legend table beneath the chart, matching mockup ---
+        # Includes a "Total" row (the EAC) in addition to the components
+        # that make up the stacked bars, without feeding it into the chart.
+        legend_metrics = COMPONENT_ORDER + [EAC_METRIC]
         breakdown_df = comparison_df[
             (comparison_df["installation_year"] == installation_year)
-            & (comparison_df["metric"].isin(COMPONENT_ORDER))
+            & (comparison_df["metric"].isin(legend_metrics))
         ]
         pivot = breakdown_df.pivot(
             index="metric", columns="system", values="value"
-        ).reindex(COMPONENT_ORDER)
+        ).reindex(legend_metrics)
 
-        legend_rows = "".join(
-            f"""
-            <tr>
-                <td style="padding:6px 12px;"><span style="display:inline-block; width:10px; height:10px; background:{COMPONENT_COLORS[COMPONENT_LABELS[metric]]}; margin-right:6px;"></span>{COMPONENT_LABELS[metric]}</td>
+        def _legend_row(metric: str) -> str:
+            is_total = metric == EAC_METRIC
+            swatch = (
+                ""
+                if is_total
+                else f'<span style="display:inline-block; width:10px; height:10px; background:{COMPONENT_COLORS[COMPONENT_LABELS[metric]]}; margin-right:6px;"></span>'
+            )
+            row_style = (
+                ' style="border-top:2px solid #ddd; font-weight:700; color:#0F294A;"'
+                if is_total
+                else ""
+            )
+            return f"""
+            <tr{row_style}>
+                <td style="padding:6px 12px;">{swatch}{COMPONENT_LABELS[metric]}</td>
                 <td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Heat pump"]:,.0f}</td>
                 <td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Gas boiler"]:,.0f}</td>
             </tr>
             """
-            for metric in COMPONENT_ORDER
-        )
+
+        legend_rows = "".join(_legend_row(metric) for metric in legend_metrics)
         st.markdown(
             f"""
             <table style="width:100%; font-size:13px; border-collapse:collapse; margin-top:20px;">
@@ -160,7 +174,7 @@ def render_eac_breakdown_section(
         )
 
         cashflow_chart = build_cashflow_chart(annual_breakdown_df, installation_year)
-        st.altair_chart(cashflow_chart, use_container_width=True)
+        st.altair_chart(cashflow_chart, width="stretch")
         with st.expander("▾ View underlying data"):
             cashflow_df = annual_breakdown_df[
                 (annual_breakdown_df["installation_year"] == installation_year)

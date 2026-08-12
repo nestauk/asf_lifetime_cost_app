@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 from config.defaults import (
-    ASHP_HEAT_DEMAND_UPLIFT_DEFAULT,
+    ASHP_HEAT_DEMAND_UPLIFT_PCT_DEFAULT,
     ASHP_INSTALLATION_COST_DEFAULT,
     ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT,
     ASHP_INTEREST_RATE_DEFAULT,
@@ -15,6 +15,7 @@ from config.defaults import (
     ASHP_SUBSIDY_SCENARIO_DEFAULT,
     ASHP_TOU_DISCOUNT_DEFAULT,
     BOILER_EFFICIENCY_DEFAULT,
+    BOILER_HEAT_DEMAND_DEFAULT,
     BOILER_INCLUDE_STANDING_CHARGE_DEFAULT,
     BOILER_INSTALLATION_COST_DEFAULT,
     BOILER_LIFESPAN_DEFAULT,
@@ -93,7 +94,8 @@ class AppInputs:
     year range) also aren't included, since they're never user-configurable.
     """
 
-    hp_heat_demand_uplift: float = ASHP_HEAT_DEMAND_UPLIFT_DEFAULT
+    boiler_heat_demand: float = BOILER_HEAT_DEMAND_DEFAULT
+    heat_pump_heat_demand_uplift: float = ASHP_HEAT_DEMAND_UPLIFT_PCT_DEFAULT
     heat_pump: HeatPumpInputs = field(default_factory=HeatPumpInputs)
     gas_boiler: GasBoilerInputs = field(default_factory=GasBoilerInputs)
     energy_prices: EnergyPriceInputs = field(default_factory=EnergyPriceInputs)
