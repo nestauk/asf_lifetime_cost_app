@@ -29,6 +29,7 @@ COMPONENT_LABELS = {
     "Equivalent Annual Cost: loan interest": "Loan interest",
     "Equivalent Annual Cost: maintenance cost": "Maintenance",
     "Equivalent Annual Cost: running cost": "Running cost",
+    "Annualised discounted lifetime cost (Equivalent Annual Cost)": "Total annualised lifetime cost",
 }
 COMPONENT_COLORS = {
     "Capital cost": "#0000FF",
@@ -210,7 +211,7 @@ def build_cost_breakdown_chart(
 
     bars = (
         alt.Chart(breakdown_df)
-        .mark_bar(size=170)
+        .mark_bar(size=250)
         .encode(
             x=x_enc,
             y=alt.Y(
@@ -260,6 +261,22 @@ def build_cost_breakdown_chart(
             tooltip=alt.value(None),
         )
     )
+    totals_df = breakdown_df.groupby("system_label", as_index=False)["value"].sum()
+
+    totals = (
+        alt.Chart(totals_df)
+        .transform_calculate(label_text="'£' + format(datum.value, ',.0f')")
+        .mark_text(
+            dy=-8, fontSize=12, fontWeight="bold", color="#0F294A", font="Averta"
+        )
+        .encode(
+            x=x_enc,
+            y=alt.Y("value:Q", scale=y_scale),
+            text=alt.Text("label_text:N"),
+            tooltip=alt.value(None),
+        )
+    )
+
     annotation_df = pd.DataFrame(
         {
             "system_label": ["Air-to-water heat pump"],
@@ -275,7 +292,7 @@ def build_cost_breakdown_chart(
             stroke="#888",
             strokeDash=[4, 3],
             strokeWidth=1.5,
-            width=170,
+            width=250,
         )
         .encode(
             x=x_enc,
@@ -303,8 +320,8 @@ def build_cost_breakdown_chart(
     )
 
     return (
-        alt.layer(bars, labels, subsidy_box, subsidy_label)
-        .properties(height=380)
+        alt.layer(bars, labels, totals, subsidy_box, subsidy_label)
+        .properties(height=380, width=280)
         .configure_view(clip=False)
     )
 
