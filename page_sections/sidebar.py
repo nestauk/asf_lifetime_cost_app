@@ -93,13 +93,13 @@ def render_fixed_inputs() -> None:
     with col2:
         render_locked_value("Inflation rate", f"{INFLATION_RATE_DEFAULT * 100:.1f}%")
     st.markdown(
-        '<div style="font-size:12px; color:#888; margin-bottom:12px;">HM Treasury Green Book guidance</div>',
+        "<div style='font-size:12px; color:#888; margin-bottom:12px;'>Inflation set at Bank of England's CPI target.</div>",
         unsafe_allow_html=True,
     )
     render_locked_value(
-        "Future discount rate",
+        "Discount rate",
         f"{DISCOUNT_RATE_DEFAULT * 100:.1f}%",
-        "HM Treasury Green Book guidance",
+        "HM Treasury's The Green Book guidance for Social Time Preference Rate to convert future costs and benefits into present values.",
     )
     # ---Installation years range--- #
     render_locked_value(
@@ -108,7 +108,10 @@ def render_fixed_inputs() -> None:
     )
     # ---Reminder callout--- #
     render_callout(
-        f"Every result is a <strong>present value in {BASE_YEAR_DEFAULT} real £</strong>. Costs are inflation-adjusted and discounted to what they are worth today."
+        f"Every result is a <strong>present value in {BASE_YEAR_DEFAULT} real £</strong> - inflation-"
+        "adjusted and discounted to what it's worth today. <strong>Real terms</strong> strips out "
+        "inflation; <strong>nominal terms</strong> (not shown here) would be the actual cash on a "
+        "future invoice."
     )
 
 
