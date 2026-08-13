@@ -262,7 +262,9 @@ def _render_fuel_price_inputs(
     if growth_mode == "flat":
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Flat: held at today's value every year. Nothing more to set.</div>",
+            "Flat: held at today's value in real terms (2026 £) - the underlying cost doesn't rise or "
+            "fall in real terms, though the actual cash price still rises with inflation. Nothing more "
+            "to set.</div>",
             unsafe_allow_html=True,
         )
 
@@ -427,7 +429,10 @@ def render_energy_prices_section(
         )
     )
 
-    st.divider()
+    st.markdown(
+        '<hr style="margin:4px 0; border-color:#e2e3e7;">',
+        unsafe_allow_html=True,
+    )
 
     (
         electricity_current_price,
@@ -764,8 +769,9 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         key=_gen_key("boiler_installation_cost_input"),
     )
     st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Held constant in real terms, 2026–2035.</div>",
+        f'<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
+        f"Held at the value set above, in real terms ({BASE_YEAR_DEFAULT} £), for every installation "
+        f"year.</div>",
         unsafe_allow_html=True,
     )
 
@@ -807,8 +813,9 @@ def render_gas_boiler_section() -> GasBoilerInputs:
     if include_standing_charge:
         st.markdown(
             f'<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            f"Included ({standing_charge:.2f} p/day, held constant in future). Assumes gas heating is the only reason "
-            f"for a gas connection, so switching would let the household disconnect.</div>",
+            f"Included at {standing_charge:.2f} p/day, held constant in real terms ({BASE_YEAR_DEFAULT} £). "
+            f"Assumes gas heating is the household's only use of gas, so switching to a heat pump would "
+            f"let it disconnect entirely.</div>",
             unsafe_allow_html=True,
         )
     else:

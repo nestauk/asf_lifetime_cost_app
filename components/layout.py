@@ -1,11 +1,11 @@
-"""TODO"""
+"""Pre-built components that are commonly used across all pages."""
 
 import streamlit as st
 
 
 def render_top_bar(
-    tool_name: str = "Heating system cost tool",
-    badge_text: str = "Internal · sustainable future",
+    tool_name: str = "Heating system lifetime cost tool",
+    badge_text: str = "A sustainable future",
 ) -> None:
     """Render the dark navy top bar with Nesta logo, tool name, and a right-aligned badge."""
     st.markdown(
@@ -39,9 +39,14 @@ def render_top_bar(
 
 
 def render_beta_banner(
-    message: str = "This is a new tool and the numbers behind it are still being checked. Tell us what would make it more useful.",
+    message: str = "This tool is in beta. We're still making improvements",
+    feedback_email: str = "your-team@nesta.org.uk",
 ) -> None:
-    """Render the bright blue BETA notice banner beneath the top bar."""
+    """Render the bright blue BETA notice banner beneath the top bar, with a
+    mailto link inviting feedback.
+    """
+    feedback_email = "elysia.lucas@nesta.org.uk"
+    mailto_link = f"mailto:{feedback_email}?subject=Feedback%20on%20Heating%20system%20cost%20tool"
     st.markdown(
         f"""
         <div style="
@@ -62,7 +67,11 @@ def render_beta_banner(
                 padding: 3px 8px;
                 letter-spacing: 0.5px;
             ">BETA</span>
-            <span style="color: white; font-size: 13px;">{message}</span>
+            <span style="color: white; font-size: 13px;">
+                {message} &mdash;
+                <a href="{mailto_link}" style="color: white; text-decoration: underline; font-weight: 700;">
+                    tell us what would make it more useful</a>.
+            </span>
         </div>
         """,
         unsafe_allow_html=True,

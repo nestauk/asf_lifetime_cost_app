@@ -77,8 +77,8 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
     data_min = eac_df["value"].min()
     data_max = eac_df["value"].max()
     data_range = data_max - data_min
-    padding = data_range * 0.3 if data_range > 0 else data_max * 0.1
-    y_domain = [max(0, data_min - padding), data_max + padding]
+    padding = data_range * 0.5 if data_range > 0 else data_max * 0.1
+    y_domain = [0, data_max + padding]
 
     max_year = eac_df["installation_year"].max()
 
@@ -137,7 +137,7 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
     )
 
     return (dashed_line + solid_lines + end_labels).properties(
-        height=340, padding={"top": 20, "bottom": 10, "left": 0, "right": 0}
+        height=500, padding={"top": 20, "bottom": 10, "left": 0, "right": 0}
     )
 
 
@@ -248,6 +248,7 @@ def build_cost_breakdown_chart(
                 title="Annualised lifetime cost (£)",
                 stack="zero",
                 scale=y_scale,
+                axis=alt.Axis(tickCount=6),
             ),
             color=alt.Color(
                 "component_label:N",
@@ -350,7 +351,7 @@ def build_cost_breakdown_chart(
 
     return (
         alt.layer(bars, labels, totals, subsidy_box, subsidy_label)
-        .properties(height=380, width=280)
+        .properties(height=400)
         .configure_view(clip=False)
     )
 
@@ -424,4 +425,4 @@ def build_cashflow_chart(
         alt.datum.system == NO_SUBSIDY_SYSTEM
     ).mark_line(point=True, strokeWidth=2, strokeDash=[6, 4])
 
-    return (dashed_line + solid_lines).properties(height=400)
+    return (dashed_line + solid_lines).properties(height=500)
