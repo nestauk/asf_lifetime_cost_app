@@ -49,7 +49,7 @@ solve_electricity_price_page = st.Page(
 )
 methodology_page = st.Page(
     "views/methodology.py",
-    title="Methodology & data",
+    title="Guide & methodology",
     icon="📄",
 )
 
