@@ -518,12 +518,16 @@ def build_required_electricity_price_chart(
             x=alt.X(
                 "operating_year:O",
                 title="Year",
-                axis=alt.Axis(labelAngle=0),
+                axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
                 scale=alt.Scale(
                     domain=sorted(required_price_cap_rates.keys()), padding=0
                 ),
             ),
-            y=alt.Y("required_price:Q", title="Required electricity price (p/kWh)"),
+            y=alt.Y(
+                "required_price:Q",
+                title="Required electricity price (p/kWh)",
+                axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+            ),
             tooltip=[
                 alt.Tooltip("operating_year:O", title="Year"),
                 alt.Tooltip(
@@ -579,7 +583,7 @@ def build_required_price_ratio_chart(
     x_enc = alt.X(
         "operating_year:O",
         title="Year",
-        axis=alt.Axis(labelAngle=0),
+        axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
         scale=alt.Scale(domain=years_sorted, padding=0),
     )
 
@@ -592,7 +596,11 @@ def build_required_price_ratio_chart(
         )
         .encode(
             x=x_enc,
-            y=alt.Y("ratio:Q", title="Required electricity-to-gas price ratio"),
+            y=alt.Y(
+                "ratio:Q",
+                title="Required electricity-to-gas price ratio",
+                axis=alt.Axis(titleFontWeight="bold"),
+            ),
             tooltip=[
                 alt.Tooltip("operating_year:O", title="Year"),
                 alt.Tooltip("ratio:Q", title="Required ratio", format=",.2f"),
@@ -603,7 +611,7 @@ def build_required_price_ratio_chart(
     labels = (
         alt.Chart(ratio_df)
         .mark_text(
-            dy=-14, fontSize=11, fontWeight="bold", color="#0000FF", font="Averta"
+            dy=-15, fontSize=11, fontWeight="bold", color="#0000FF", font="Averta"
         )
         .encode(
             x=x_enc,
@@ -626,17 +634,18 @@ def build_required_price_ratio_chart(
             alt.Chart(reference_df)
             .mark_text(
                 align="left",
-                dx=5,
-                dy=-6,
+                dx=-50,
+                dy=-10,
                 fontSize=11,
                 color="#444",
                 fontWeight="bold",
                 font="Averta",
             )
             .encode(
-                y=alt.Y("y:Q"), text=alt.value(f"Current ratio: {current_ratio:.2f}")
+                y=alt.Y("y:Q"),
+                text=alt.value(f"Latest Ofgem price cap ratio: {current_ratio:.2f}"),
             )
         )
         layers.extend([reference_line, reference_label])
 
-    return alt.layer(*layers).properties(height=340)
+    return alt.layer(*layers).properties(height=400)

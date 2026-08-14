@@ -55,7 +55,15 @@ render_page_context_callout(
     "though the electricity price itself stays fixed."
 )
 
-render_required_price_ratio_section(user_inputs)
+from config.defaults import get_electricity_price_default, get_gas_price_default
+
+current_electricity_price = (
+    get_electricity_price_default()
+)  # latest Ofgem price cap, p/kWh
+current_gas_price = get_gas_price_default()  # latest Ofgem price cap, p/kWh
+current_ratio = current_electricity_price / current_gas_price
+
+render_required_price_ratio_section(user_inputs, current_ratio)
 
 # ---Assumptions table ---#
 render_section_heading(" ")

@@ -18,39 +18,42 @@ from results.compute import (
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 
 
-def render_required_price_ratio_section(inputs: AppInputs) -> None:
+def render_required_price_ratio_section(
+    inputs: AppInputs, current_ratio: float
+) -> None:
     render_section_heading(
-        "Electricity price cap rate needed over the heat pump's lifetime"
+        "Electricity-to-gas price ratio needed over the heat pump's lifetime for annualised lifetime cost parity with a gas boiler"
     )
     installation_year = st.selectbox(
         "Installation year",
         options=INSTALLATION_YEARS,
         key="electricity_solver_year_select",
     )
-    with st.container(border=True):
-        required_price_cap_rates = build_required_electricity_prices(
-            inputs, installation_year
-        )
+    st.markdown("")
 
-        gas_prices_trajectory = build_gas_prices(inputs)
-        gas_prices_by_year = {
-            year: gas_prices_trajectory.get_price(year=year)
-            for year in required_price_cap_rates.keys()
-        }
+    required_price_cap_rates = build_required_electricity_prices(
+        inputs, installation_year
+    )
 
-        required_price_ratio = build_required_price_ratio(
-            required_price_cap_rates, gas_prices_by_year
-        )
+    gas_prices_trajectory = build_gas_prices(inputs)
+    gas_prices_by_year = {
+        year: gas_prices_trajectory.get_price(year=year)
+        for year in required_price_cap_rates.keys()
+    }
 
-        chart = build_required_price_ratio_chart(required_price_ratio)
-        st.altair_chart(chart, width="stretch")
+    required_price_ratio = build_required_price_ratio(
+        required_price_cap_rates, gas_prices_by_year
+    )
+
+    chart = build_required_price_ratio_chart(required_price_ratio, current_ratio)
+    st.altair_chart(chart, width="stretch")
 
     render_section_heading("Year by year")
     electricity_price_summary_df = build_required_electricity_price_summary_df(
         inputs=inputs, installation_year=installation_year
     )
-    with st.container(border=True):
-        render_required_electricity_price_table_section(electricity_price_summary_df)
+
+    render_required_electricity_price_table_section(electricity_price_summary_df)
 
     render_download_required_electricity_price_summary_section(
         electricity_price_summary_df
@@ -65,10 +68,10 @@ def render_required_electricity_price_table_section(
         row_bg, message = "", ""
         if row["heat_pump_eac_today"] < row["gas_boiler_eac"]:
             row_bg = "background:#B7E4D8;"
-            message = "Already cheaper — electricity could rise this far before parity is lost"
+            message = "Already cheaper - electricity could rise this far before parity is lost"
         elif row["required_rate"] < 0:
             row_bg = "background:#F6C6D3;"
-            message = "Negative — electricity price alone can't close the gap"
+            message = "Negative - electricity price alone can't close the gap"
 
         ratio_text = (
             f"{row['implied_ratio']:.2f}" if pd.notna(row["implied_ratio"]) else "—"
@@ -91,17 +94,17 @@ def render_required_electricity_price_table_section(
         '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
         '<tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">'
         '<td style="padding:10px 16px;">Year</td>'
-        '<td style="padding:10px 16px; text-align:right;">Gas boiler, £/yr</td>'
-        '<td style="padding:10px 16px; text-align:right;">Heat pump at today\'s price, £/yr</td>'
-        '<td style="padding:10px 16px; text-align:right;">Gas price, p/kWh</td>'
-        '<td style="padding:10px 16px; text-align:right;">Rate needed, p/kWh</td>'
+        '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost (£)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Heat pump annualised lifetime cost at today\'s electricity price (£)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Gas price set in sidebar, p/kWh</td>'
+        '<td style="padding:10px 16px; text-align:right;">Electricity rate needed, p/kWh</td>'
         '<td style="padding:10px 16px; text-align:right;">Implied ratio to gas</td>'
         '<td style="padding:10px 16px;">What this means</td>'
         "</tr>" + rows_html + "</table>"
         "</div>"
         '<div style="margin-top:12px; font-size:13px; display:flex; gap:20px;">'
         '<div><span style="display:inline-block; width:12px; height:12px; background:#B7E4D8; margin-right:6px;"></span>'
-        "Already at parity — the rate shown is the headroom before parity is lost</div>"
+        "Already at parity - the rate shown is the headroom before parity is lost</div>"
         '<div><span style="display:inline-block; width:12px; height:12px; background:#F6C6D3; margin-right:6px;"></span>'
         "No physically meaningful rate reaches parity<p></div>"
         "</div>"
