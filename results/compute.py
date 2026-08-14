@@ -491,6 +491,7 @@ def build_required_electricity_price_summary_df(
 
         rows.append(
             {
+                "installation_year": installation_year,
                 "operating_year": operating_year,
                 "gas_boiler_eac": gas_boiler_eac,
                 "heat_pump_eac_today": heat_pump_eac_today,

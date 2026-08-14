@@ -584,7 +584,7 @@ def build_required_price_ratio_chart(
 
     x_enc = alt.X(
         "operating_year:O",
-        title="Year",
+        title="Year in lifetime",
         axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
         scale=alt.Scale(domain=years_sorted, padding=0),
     )
