@@ -424,3 +424,69 @@ def build_cashflow_chart(
     ).mark_line(point=True, strokeWidth=2, strokeDash=[6, 4])
 
     return (dashed_line + solid_lines).properties(height=500)
+
+
+def build_required_subsidy_chart(
+    required_subsidy_df: pd.DataFrame, current_subsidy: float = 7_500.0
+) -> alt.Chart:
+    """Line chart: required subsidy by installation year, with a dashed reference line
+    showing the current/default subsidy level for comparison.
+    """
+    installation_years = sorted(required_subsidy_df["installation_year"].unique())
+
+    line = (
+        alt.Chart(required_subsidy_df)
+        .mark_line(
+            point=alt.OverlayMarkDef(filled=True, color="#0000FF"),
+            strokeWidth=2.5,
+            color="#0000FF",
+        )
+        .encode(
+            x=alt.X(
+                "installation_year:O",
+                title="Installation year",
+                axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+                scale=alt.Scale(
+                    domain=installation_years,
+                    padding=0,
+                ),
+            ),
+            y=alt.Y(
+                "required_subsidy:Q",
+                title="Required subsidy (£)",
+                axis=alt.Axis(titleFontWeight="bold"),
+            ),
+            tooltip=[
+                alt.Tooltip("installation_year:O", title="Installation year"),
+                alt.Tooltip(
+                    "required_subsidy:Q", title="Required subsidy (£)", format=",.0f"
+                ),
+            ],
+        )
+    )
+
+    reference_df = pd.DataFrame({"y": [current_subsidy]})
+
+    reference_line = (
+        alt.Chart(reference_df)
+        .mark_rule(strokeDash=[4, 3], color="#888", strokeWidth=1.5)
+        .encode(y=alt.Y("y:Q"))
+    )
+
+    reference_label = (
+        alt.Chart(reference_df)
+        .mark_text(
+            align="left",
+            dx=5,
+            dy=-6,
+            fontSize=11,
+            color="#444",
+            fontWeight="bold",
+            font="Averta",
+        )
+        .encode(
+            y=alt.Y("y:Q"), text=alt.value(f"Current subsidy: £{current_subsidy:,.0f}")
+        )
+    )
+
+    return alt.layer(line, reference_line, reference_label).properties(height=400)
