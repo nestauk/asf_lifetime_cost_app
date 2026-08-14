@@ -59,9 +59,9 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
         '<tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">'
         '<td style="padding:10px 16px;">Installation year</td>'
-        '<td style="padding:10px 16px; text-align:right;">Gas boiler, £/yr</td>'
-        '<td style="padding:10px 16px; text-align:right;">Heat pump with no subsidy, £/yr</td>'
-        '<td style="padding:10px 16px; text-align:right;">Subsidy needed</td>'
+        '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost (£/yr)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Heat pump (no subsidy) annualised lifetime cost (£/yr)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Subsidy needed (£)</td>'
         '<td style="padding:10px 16px;">What this means</td>'
         "</tr>" + rows_html + "</table>"
         "</div>"
@@ -75,9 +75,21 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
 
 
 def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) -> None:
+
+    # Prepare dataframe for export
+    required_subsidy_df_for_export = required_subsidy_df.copy().rename(
+        columns={
+            "installation_year": "Installation year",
+            "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr",
+            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr",
+            "required_subsidy": "Heat pump subsidy needed for cost parity, £",
+            "installation_cost": "Heat pump installation cost, £",
+        }
+    )
+
     st.download_button(
         "⬇ Export CSV",
-        data=required_subsidy_df.to_csv(index=False),
+        data=required_subsidy_df_for_export.to_csv(index=False),
         file_name="required_subsidy_by_installation_year.csv",
         mime="text/csv",
         key="download_required_subsidy_by_installation_year",
