@@ -88,7 +88,7 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
         )
         st.download_button(
             "⬇ Export CSV",
-            data=eac_df_for_export.to_csv(index=False),
+            data=eac_df_for_export.to_csv(index=False).encode("utf-8-sig"),
             file_name="eac_by_installation_year.csv",
             mime="text/csv",
         )
@@ -197,7 +197,7 @@ def render_eac_breakdown_section(
         )
         st.download_button(
             "⬇ Export CSV",
-            data=eac_breakdown_df_for_export.to_csv(index=False),
+            data=eac_breakdown_df_for_export.to_csv(index=False).encode("utf-8-sig"),
             file_name="eac_breakdown_by_installation_year.csv",
             mime="text/csv",
         )
@@ -251,7 +251,7 @@ def render_eac_breakdown_section(
         st.dataframe(cashflow_df_for_export, width="stretch", hide_index=True)
         st.download_button(
             "⬇ Export CSV",
-            data=annual_breakdown_df.to_csv(index=False),
+            data=annual_breakdown_df.to_csv(index=False).encode("utf-8-sig"),
             file_name="cost_of_ownership_annual_breakdown.csv",
             mime="text/csv",
         )
