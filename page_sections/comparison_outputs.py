@@ -63,7 +63,7 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
             unsafe_allow_html=True,
         )
 
-    with st.expander("▾ View underlying data"):
+    with st.expander("▾ View/export underlying data"):
         st.dataframe(
             comparison_df[comparison_df["metric"] == EAC_METRIC],
             width="stretch",
@@ -96,7 +96,7 @@ def render_eac_breakdown_section(
     )
     st.markdown(
         '<div style="font-size:13px; color:#666; margin-bottom:16px;">'
-        "Annualised lifetime cost (£) split into upfront cost, loan interest, running cost and maintenance</div>",
+        "Annualised lifetime cost (£) split into capital cost, running cost and maintenance</div>",
         unsafe_allow_html=True,
     )
     chart = build_cost_breakdown_chart(comparison_df, installation_year)
@@ -155,12 +155,17 @@ def render_eac_breakdown_section(
         comparison_df["metric"].isin(EAC_METRICS_FOR_EXPORT)
     ].copy()
 
-    st.download_button(
-        "⬇ Export CSV",
-        data=eac_breakdown_export_df.to_csv(index=False),
-        file_name="eac_breakdown_by_installation_year.csv",
-        mime="text/csv",
-    )
+    with st.expander("▾ View/export underlying data"):
+        st.dataframe(
+            eac_breakdown_export_df,
+            width="stretch",
+        )
+        st.download_button(
+            "⬇ Export CSV",
+            data=eac_breakdown_export_df.to_csv(index=False),
+            file_name="eac_breakdown_by_installation_year.csv",
+            mime="text/csv",
+        )
 
     st.divider()
 
@@ -178,7 +183,8 @@ def render_eac_breakdown_section(
 
     cashflow_chart = build_cashflow_chart(annual_breakdown_df, installation_year)
     st.altair_chart(cashflow_chart, width="stretch")
-    with st.expander("▾ View underlying data"):
+
+    with st.expander("▾ View/export underlying data"):
         cashflow_df = annual_breakdown_df[
             (annual_breakdown_df["installation_year"] == installation_year)
             & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)

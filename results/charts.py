@@ -107,7 +107,7 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
         tooltip=[
             alt.Tooltip("system_label:N", title="System"),
             alt.Tooltip("installation_year:O", title="Installation year"),
-            alt.Tooltip("value:Q", title="EAC (£)", format=",.0f"),
+            alt.Tooltip("value:Q", title="Annualised lifetime cost (£)", format=",.0f"),
         ],
     )
 
@@ -240,7 +240,7 @@ def build_cost_breakdown_chart(
 
     bars = (
         alt.Chart(breakdown_df)
-        .mark_bar(size=250)
+        .mark_bar(size=300)
         .encode(
             x=x_enc,
             y=alt.Y(
@@ -322,7 +322,7 @@ def build_cost_breakdown_chart(
             stroke="#888",
             strokeDash=[4, 3],
             strokeWidth=1.5,
-            width=250,
+            width=300,
         )
         .encode(
             x=x_enc,
@@ -349,10 +349,8 @@ def build_cost_breakdown_chart(
         )
     )
 
-    return (
-        alt.layer(bars, labels, totals, subsidy_box, subsidy_label)
-        .properties(height=400)
-        .configure_view(clip=False)
+    return alt.layer(bars, labels, totals, subsidy_box, subsidy_label).properties(
+        height=400,
     )
 
 
