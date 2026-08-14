@@ -30,15 +30,18 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         year = int(row["installation_year"])
         gas_boiler_eac = row["gas_boiler_eac"]
         heat_pump_no_subsidy_eac = row.get("heat_pump_no_subsidy_eac", None)
-        required_subsidy = row["required_subsidy"]
+        required_subsidy_real = row["required_subsidy_real"]
+        required_subsidy_nominal = row["required_subsidy_nominal"]
         installation_cost = row.get("installation_cost", None)
 
         row_bg = ""
         message = ""
-        if required_subsidy < 0:
+        if required_subsidy_real < 0:
             row_bg = "background:#B7E4D8;"
             message = "Already cheaper — no subsidy needed"
-        elif installation_cost is not None and required_subsidy > installation_cost:
+        elif (
+            installation_cost is not None and required_subsidy_real > installation_cost
+        ):
             row_bg = "background:#F6C6D3;"
             message = (
                 "More than the installation cost - subsidy alone can't close the gap"
@@ -49,7 +52,8 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
             f'<td style="padding:10px 16px;">{year}</td>'
             f'<td style="padding:10px 16px; text-align:right;">{gas_boiler_eac:,.0f}</td>'
             f'<td style="padding:10px 16px; text-align:right;">{heat_pump_no_subsidy_eac:,.0f}</td>'
-            f'<td style="padding:10px 16px; text-align:right; font-weight:700;">£{required_subsidy:,.0f}</td>'
+            f'<td style="padding:10px 16px; text-align:right; font-weight:700;">£{required_subsidy_real:,.0f}</td>'
+            f'<td style="padding:10px 16px; text-align:right; font-weight:700;">£{required_subsidy_nominal:,.0f}</td>'
             f'<td style="padding:10px 16px; color:#444;">{message}</td>'
             f"</tr>"
         )
@@ -59,9 +63,10 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
         '<tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">'
         '<td style="padding:10px 16px;">Installation year</td>'
-        '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost (£/yr)</td>'
-        '<td style="padding:10px 16px; text-align:right;">Heat pump (no subsidy) annualised lifetime cost (£/yr)</td>'
-        '<td style="padding:10px 16px; text-align:right;">Subsidy needed (£)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost, £/yr</td>'
+        '<td style="padding:10px 16px; text-align:right;">Heat pump (no subsidy) annualised lifetime cost, £/yr</td>'
+        '<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ (2026 real)</td>'
+        '<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ (nominal)</td>'
         '<td style="padding:10px 16px;">What this means</td>'
         "</tr>" + rows_html + "</table>"
         "</div>"
@@ -80,16 +85,17 @@ def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) 
     required_subsidy_df_for_export = required_subsidy_df.copy().rename(
         columns={
             "installation_year": "Installation year",
-            "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr",
-            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr",
-            "required_subsidy": "Heat pump subsidy needed for cost parity, £",
-            "installation_cost": "Heat pump installation cost, £",
+            "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr (2026 real)",
+            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr (2026 real)",
+            "installation_cost": "Heat pump installation cost, £ (2026 real)",
+            "required_subsidy_real": "Heat pump subsidy needed for cost parity, £ (2026 real)",
+            "required_subsidy_nominal": "Heat pump subsidy needed for cost parity, £ (nominal)",
         }
     )
 
     st.download_button(
         "⬇ Export CSV",
-        data=required_subsidy_df_for_export.to_csv(index=False),
+        data=required_subsidy_df_for_export.to_csv(index=False).encode("utf-8-sig"),
         file_name="required_subsidy_by_installation_year.csv",
         mime="text/csv",
         key="download_required_subsidy_by_installation_year",
