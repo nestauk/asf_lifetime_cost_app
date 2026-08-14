@@ -32,7 +32,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 
 render_page_title(
-    title="Lifetime cost: air-to-water heat pump vs gas boiler",
+    title="Comparing the lifetime cost of heat pump vs. gas boiler",
     subtitle="Change any assumption on the left and the outputs below will update together.",
 )
 

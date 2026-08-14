@@ -10,8 +10,8 @@ import pandas as pd
 
 SYSTEM_COLORS = {
     "Heat pump": "#18A48C",
-    "Heat pump (no subsidy)": "#A59BEE",
-    "Gas boiler": "#0F294A",
+    "Heat pump (no subsidy)": "#646363",
+    "Gas boiler": "#0000FF",
 }
 SYSTEM_LABELS = {
     "Heat pump": "Air-to-water heat pump",
@@ -19,23 +19,23 @@ SYSTEM_LABELS = {
     "Gas boiler": "Gas boiler",
 }
 COMPONENT_ORDER = [
-    "Equivalent Annual Cost: capital cost",
+    "Equivalent Annual Cost: capital cost (principal only)",
     "Equivalent Annual Cost: loan interest",
-    "Equivalent Annual Cost: maintenance cost",
     "Equivalent Annual Cost: running cost",
+    "Equivalent Annual Cost: maintenance cost",
 ]
 COMPONENT_LABELS = {
-    "Equivalent Annual Cost: capital cost": "Capital cost",
+    "Equivalent Annual Cost: capital cost (principal only)": "Capital cost (principal only)",
     "Equivalent Annual Cost: loan interest": "Loan interest",
     "Equivalent Annual Cost: maintenance cost": "Maintenance",
     "Equivalent Annual Cost: running cost": "Running cost",
     "Annualised discounted lifetime cost (Equivalent Annual Cost)": "Total annualised lifetime cost",
 }
 COMPONENT_COLORS = {
-    "Capital cost": "#0000FF",
+    "Capital cost (principal only)": "#0F294A",
     "Loan interest": "#F6A4B7",
     "Maintenance": "#97D9E3",
-    "Running cost": "#FF6E47",
+    "Running cost": "#9A1BBE",
 }
 
 EAC_METRIC = "Annualised discounted lifetime cost (Equivalent Annual Cost)"
@@ -63,52 +63,81 @@ def get_eac(comparison_df: pd.DataFrame, installation_year: int, system: str) ->
 
 
 def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
-    """Line chart: annualised lifetime cost (EAC) by installation year, one line per system."""
+    """Line chart: annualised lifetime cost (EAC) by installation year, one line per system.
+
+    The no-subsidy heat pump line is drawn dashed/lighter since it's a
+    reference line, not part of the core comparison.
+    """
     eac_df = comparison_df[comparison_df["metric"] == EAC_METRIC].copy()
     eac_df["system_label"] = eac_df["system"].map(SYSTEM_LABELS)
 
-    # Compute the y-axis domain from the actual data, with ~10% padding on
-    # each side, rather than a fixed range
+    NO_SUBSIDY_SYSTEM = "Heat pump (no subsidy)"
+
+    # Compute the y-axis domain from the actual data with padding on each side
     data_min = eac_df["value"].min()
     data_max = eac_df["value"].max()
     data_range = data_max - data_min
-    padding = (
-        data_range * 0.15 if data_range > 0 else data_max * 0.1
-    )  # fallback if all values are identical
-    y_domain = [max(0, data_min - padding), data_max + padding]
+    padding = data_range * 0.5 if data_range > 0 else data_max * 0.1
+    y_domain = [0, data_max + padding]
 
-    return (
-        alt.Chart(eac_df)
-        .mark_line(point=True, strokeWidth=2.5)
-        .encode(
-            x=alt.X(
-                "installation_year:O",
-                title="Installation year",
-                axis=alt.Axis(labelAngle=0),
-                scale=alt.Scale(padding=0),
+    max_year = eac_df["installation_year"].max()
+
+    base = alt.Chart(eac_df).encode(
+        x=alt.X(
+            "installation_year:O",
+            title="Installation year",
+            axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+            scale=alt.Scale(padding=0),
+        ),
+        y=alt.Y(
+            "value:Q",
+            title="Annualised lifetime cost (£)",
+            scale=alt.Scale(domain=y_domain),
+            axis=alt.Axis(
+                tickCount=6,
+                titleFontWeight="bold",
             ),
-            y=alt.Y(
-                "value:Q",
-                title="Annualised lifetime cost (£)",
-                scale=alt.Scale(domain=y_domain),
-                axis=alt.Axis(tickCount=6),
-            ),
-            color=alt.Color(
-                "system_label:N",
-                title=None,
-                sort=SYSTEM_LABEL_ORDER,
-                scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
-                legend=alt.Legend(orient="bottom", labelLimit=300),
-            ),
-            tooltip=[
-                alt.Tooltip("system_label:N", title="System"),
-                alt.Tooltip("installation_year:O", title="Installation year"),
-                alt.Tooltip("value:Q", title="EAC (£)", format=",.0f"),
-            ],
+        ),
+        color=alt.Color(
+            "system_label:N",
+            sort=SYSTEM_LABEL_ORDER,
+            scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
+            legend=None,  # end-of-line labels instead
+        ),
+        tooltip=[
+            alt.Tooltip("system_label:N", title="System"),
+            alt.Tooltip("installation_year:O", title="Installation year"),
+            alt.Tooltip("value:Q", title="Annualised lifetime cost (£)", format=",.0f"),
+        ],
+    )
+
+    solid_lines = base.transform_filter(
+        alt.datum.system != NO_SUBSIDY_SYSTEM
+    ).mark_line(point=True, strokeWidth=2.5)
+
+    dashed_line = base.transform_filter(
+        alt.datum.system == NO_SUBSIDY_SYSTEM
+    ).mark_line(point=True, strokeWidth=2, strokeDash=[6, 4], opacity=0.6)
+
+    end_labels = (
+        base.transform_filter(alt.datum.installation_year == max_year)
+        .transform_calculate(
+            label_text="replace(datum.system_label, ' (no subsidy)', '\\n(no subsidy)')"
         )
-        .properties(
-            height=340, padding={"top": 20, "bottom": 10, "left": 10, "right": 10}
+        .mark_text(
+            align="left",
+            dx=8,
+            fontSize=12,
+            fontWeight="bold",
+            font="Averta",
+            lineBreak="\n",
+            lineHeight=14,
         )
+        .encode(text="label_text:N")
+    )
+
+    return (dashed_line + solid_lines + end_labels).properties(
+        height=500, padding={"top": 20, "bottom": 10, "left": 0, "right": 0}
     )
 
 
@@ -211,7 +240,7 @@ def build_cost_breakdown_chart(
 
     bars = (
         alt.Chart(breakdown_df)
-        .mark_bar(size=250)
+        .mark_bar(size=300)
         .encode(
             x=x_enc,
             y=alt.Y(
@@ -219,6 +248,7 @@ def build_cost_breakdown_chart(
                 title="Annualised lifetime cost (£)",
                 stack="zero",
                 scale=y_scale,
+                axis=alt.Axis(tickCount=6),
             ),
             color=alt.Color(
                 "component_label:N",
@@ -292,7 +322,7 @@ def build_cost_breakdown_chart(
             stroke="#888",
             strokeDash=[4, 3],
             strokeWidth=1.5,
-            width=250,
+            width=300,
         )
         .encode(
             x=x_enc,
@@ -319,10 +349,8 @@ def build_cost_breakdown_chart(
         )
     )
 
-    return (
-        alt.layer(bars, labels, totals, subsidy_box, subsidy_label)
-        .properties(height=380, width=280)
-        .configure_view(clip=False)
+    return alt.layer(bars, labels, totals, subsidy_box, subsidy_label).properties(
+        height=400,
     )
 
 
@@ -334,7 +362,14 @@ def build_cost_breakdown_chart(
 def build_cashflow_chart(
     annual_breakdown_df: pd.DataFrame, installation_year: int
 ) -> alt.Chart:
-    """Line chart: total yearly cost by calendar year, one line per system."""
+    """Line chart: total yearly cost by calendar year, one line per system.
+
+    The no-subsidy heat pump line is a reference line: dashed/lighter,
+    consistent with the EAC-by-installation-year chart. Since Altair legend
+    swatches don't reflect stroke-dash, the no-subsidy series uses a
+    distinct (lighter) shade of the same hue instead, so it's visually
+    distinguishable in the legend too.
+    """
     cashflow_df = annual_breakdown_df[
         (annual_breakdown_df["installation_year"] == installation_year)
         & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
@@ -342,34 +377,53 @@ def build_cashflow_chart(
     ].copy()
     cashflow_df["system_label"] = cashflow_df["system"].map(SYSTEM_LABELS)
 
-    return (
-        alt.Chart(cashflow_df)
-        .mark_line(point=True, strokeWidth=2.5)
-        .encode(
-            x=alt.X(
-                "operating_year:O",
-                title="Year",
-                axis=alt.Axis(labelAngle=0),
-                scale=alt.Scale(padding=0),
+    NO_SUBSIDY_SYSTEM = "Heat pump (no subsidy)"
+
+    base = alt.Chart(cashflow_df).encode(
+        x=alt.X(
+            "operating_year:O",
+            title="Year in lifetime",
+            axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+        ),
+        y=alt.Y(
+            "value:Q",
+            title="Annual cost of ownership (£)",
+            axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+        ),
+        color=alt.Color(
+            "system_label:N",
+            title="Heating system",
+            sort=SYSTEM_LABEL_ORDER,
+            scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
+            legend=alt.Legend(
+                orient="bottom",
+                columns=3,
+                labelLimit=300,
+                symbolLimit=0,
+                titleOrient="left",
+                titleFontSize=12,
+                titleFontWeight="bold",
+                titleColor="#0F294A",
+                labelFontSize=12,
+                labelColor="#0F294A",
             ),
-            y=alt.Y("value:Q", title="Yearly cost (£)"),
-            color=alt.Color(
-                "system_label:N",
-                title=None,
-                sort=SYSTEM_LABEL_ORDER,
-                scale=alt.Scale(domain=SYSTEM_LABEL_ORDER, range=SYSTEM_COLOR_RANGE),
-                legend=alt.Legend(
-                    orient="bottom", columns=3, labelLimit=300, symbolLimit=0
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip("system_label:N", title="System"),
-                alt.Tooltip("operating_year:O", title="Year"),
-                alt.Tooltip("value:Q", title="£/year", format=",.0f"),
-            ],
-        )
-        .properties(height=340)
+        ),
+        tooltip=[
+            alt.Tooltip("system_label:N", title="System"),
+            alt.Tooltip("operating_year:O", title="Year"),
+            alt.Tooltip("value:Q", title="£/year", format=",.0f"),
+        ],
     )
+
+    solid_lines = base.transform_filter(
+        alt.datum.system != NO_SUBSIDY_SYSTEM
+    ).mark_line(point=True, strokeWidth=2.5)
+
+    dashed_line = base.transform_filter(
+        alt.datum.system == NO_SUBSIDY_SYSTEM
+    ).mark_line(point=True, strokeWidth=2, strokeDash=[6, 4])
+
+    return (dashed_line + solid_lines).properties(height=500)
 
 
 def build_required_subsidy_chart(
@@ -391,10 +445,17 @@ def build_required_subsidy_chart(
             x=alt.X(
                 "installation_year:O",
                 title="Installation year",
-                axis=alt.Axis(labelAngle=0),
-                scale=alt.Scale(domain=installation_years, padding=0),
+                axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+                scale=alt.Scale(
+                    domain=installation_years,
+                    padding=0,
+                ),
             ),
-            y=alt.Y("required_subsidy:Q", title="Required subsidy (£)"),
+            y=alt.Y(
+                "required_subsidy:Q",
+                title="Required subsidy (£)",
+                axis=alt.Axis(titleFontWeight="bold"),
+            ),
             tooltip=[
                 alt.Tooltip("installation_year:O", title="Installation year"),
                 alt.Tooltip(
@@ -428,7 +489,7 @@ def build_required_subsidy_chart(
         )
     )
 
-    return alt.layer(line, reference_line, reference_label).properties(height=340)
+    return alt.layer(line, reference_line, reference_label).properties(height=400)
 
 
 def build_required_electricity_price_chart(
