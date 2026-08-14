@@ -262,9 +262,9 @@ def _render_fuel_price_inputs(
     if growth_mode == "flat":
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Flat: held at today's value in real terms (2026 £) - the underlying cost doesn't rise or "
-            "fall in real terms, though the actual cash price still rises with inflation. Nothing more "
-            "to set.</div>",
+            f"Flat: held at today's value in real terms ({BASE_YEAR_DEFAULT} £). The underlying cost "
+            f"doesn't rise or fall in real terms, though the actual cash price still rises with "
+            f"inflation. Nothing more to set.</div>",
             unsafe_allow_html=True,
         )
 
@@ -282,15 +282,15 @@ def _render_fuel_price_inputs(
         growth_rate = growth_rate_pct / 100
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            f"{growth_rate_pct:+d}% per year, applied from {FUTURE_YEARS[0]} onwards.</div>",
+            f"{growth_rate_pct:+d}% per year in real terms ({BASE_YEAR_DEFAULT} £), applied from "
+            f"{FUTURE_YEARS[0]} onwards. Cash prices will also reflect inflation on top of this.</div>",
             unsafe_allow_html=True,
         )
-
     elif growth_mode == "custom":
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            f"Custom: set a price for each year. Pre-filled at today's value "
-            f"({current_price:.2f} p/kWh) — edit any cell to override that year.</div>",
+            f"Custom: set a price for each year, in real terms ({BASE_YEAR_DEFAULT} £). Pre-filled at "
+            f"today's value ({current_price:.2f} p/kWh) - edit any cell to override that year.</div>",
             unsafe_allow_html=True,
         )
 
@@ -482,11 +482,13 @@ def _render_subsidy_override(
     if overrides_key not in st.session_state:
         st.session_state[overrides_key] = {}
 
-    with st.expander("🔍 Advanced: override subsidy by year"):
+    with st.expander("🔍 View/override subsidy by year"):
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Pre-filled from the selected scenario. Choose a year, set a value, and add it below "
-            "to override that year.</div>",
+            "Pre-filled from the selected scenario, in <b>cash (nominal) terms</b> - the actual amount "
+            "that would be paid out in that year. Choose a year, set a value, and add it below to "
+            "override that year. Values are converted to real terms internally for the cost "
+            "calculations.</div>",
             unsafe_allow_html=True,
         )
 
@@ -671,14 +673,11 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         )
         st.markdown(
             '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Today's value is £7,500 (Boiler Upgrade Scheme). "
-            "Choose a preset future subsidy pathway, and/or override to set your own values.</div>",
+            "Today's value is £7,500 (Boiler Upgrade Scheme). Open <b>View/override subsidy by "
+            "year</b> below to see the full pathway or set your own values.</div>",
             unsafe_allow_html=True,
         )
-
-        subsidy_scenario_values = get_subsidy_scenario_values(
-            subsidy_scenario
-        )  # from model_integration/trajectories.py, or a lookup
+        subsidy_scenario_values = get_subsidy_scenario_values(subsidy_scenario)
         subsidy_overrides = _render_subsidy_override(subsidy_scenario_values)
 
     # --- Financing ---

@@ -10,6 +10,8 @@ from components.layout import render_page_title, render_section_heading
 from config.defaults import (
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
+    get_electricity_price_default,
+    get_gas_price_default,
 )
 from page_sections.assumptions_summary import render_assumptions_summary
 from page_sections.price_ratio_solver_outputs import (
@@ -54,8 +56,6 @@ render_page_context_callout(
     "in the sidebar, the <b>implied ratio</b> to gas will still change from year to year, even "
     "though the electricity price itself stays fixed."
 )
-
-from config.defaults import get_electricity_price_default, get_gas_price_default
 
 current_electricity_price = (
     get_electricity_price_default()
