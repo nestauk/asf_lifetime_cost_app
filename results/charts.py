@@ -39,7 +39,7 @@ COMPONENT_COLORS = {
 }
 
 EAC_METRIC = "Annualised discounted lifetime cost (Equivalent Annual Cost)"
-ANNUAL_COST_METRIC = "Discounted annual cost"
+ANNUAL_COST_METRIC = "Discounted annual cost of ownership"
 
 # Canonical ordering for the three-system charts/filters, and its label/color
 # projections, so callers don't each re-derive or re-hardcode these lists.
@@ -91,7 +91,7 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
         ),
         y=alt.Y(
             "value:Q",
-            title="Annualised lifetime cost (£)",
+            title="Annualised lifetime cost (£/yr)",
             scale=alt.Scale(domain=y_domain),
             axis=alt.Axis(
                 tickCount=6,
@@ -107,7 +107,9 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
         tooltip=[
             alt.Tooltip("system_label:N", title="System"),
             alt.Tooltip("installation_year:O", title="Installation year"),
-            alt.Tooltip("value:Q", title="Annualised lifetime cost (£)", format=",.0f"),
+            alt.Tooltip(
+                "value:Q", title="Annualised lifetime cost (£/yr)", format=",.0f"
+            ),
         ],
     )
 
@@ -245,10 +247,10 @@ def build_cost_breakdown_chart(
             x=x_enc,
             y=alt.Y(
                 "value:Q",
-                title="Annualised lifetime cost (£)",
+                title="Annualised lifetime cost (£/yr)",
                 stack="zero",
                 scale=y_scale,
-                axis=alt.Axis(tickCount=6),
+                axis=alt.Axis(tickCount=6, titleFontWeight="bold"),
             ),
             color=alt.Color(
                 "component_label:N",
@@ -339,7 +341,7 @@ def build_cost_breakdown_chart(
             dy=-14,
             fontSize=11,
             color="#444",
-            # fontWeight="bold",
+            fontWeight="bold",
             font="Averta",
         )
         .encode(
@@ -387,7 +389,7 @@ def build_cashflow_chart(
         ),
         y=alt.Y(
             "value:Q",
-            title="Annual cost of ownership (£)",
+            title="Annual cost of ownership (£/yr)",
             axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
         ),
         color=alt.Color(
@@ -582,7 +584,7 @@ def build_required_price_ratio_chart(
 
     x_enc = alt.X(
         "operating_year:O",
-        title="Year",
+        title="Year in lifetime",
         axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
         scale=alt.Scale(domain=years_sorted, padding=0),
     )

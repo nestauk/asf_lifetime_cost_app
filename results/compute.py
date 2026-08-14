@@ -284,7 +284,7 @@ def build_annual_breakdown_rows(
                 "Discounted running cost": discounted_running_cost,
                 "Discounted maintenance cost": discounted_maintenance_cost,
                 "Discounted capital cost": discounted_capital_cost,
-                "Discounted annual cost": (
+                "Discounted annual cost of ownership": (
                     discounted_running_cost
                     + discounted_maintenance_cost
                     + discounted_capital_cost
@@ -491,6 +491,7 @@ def build_required_electricity_price_summary_df(
 
         rows.append(
             {
+                "installation_year": installation_year,
                 "operating_year": operating_year,
                 "gas_boiler_eac": gas_boiler_eac,
                 "heat_pump_eac_today": heat_pump_eac_today,

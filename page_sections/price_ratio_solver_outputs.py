@@ -63,10 +63,31 @@ def render_required_price_ratio_section(
 def render_required_electricity_price_table_section(
     electricity_price_summary_df: pd.DataFrame,
 ) -> None:
+    # gas_boiler_eac and heat_pump_eac_today are constant across every row —
+    # pull them out once, rather than repeating the same number every row.
+    gas_boiler_eac = electricity_price_summary_df["gas_boiler_eac"].iloc[0]
+    heat_pump_eac_today = electricity_price_summary_df["heat_pump_eac_today"].iloc[0]
+
+    st.markdown(
+        f"""
+        <div style="display:flex; gap:24px; margin-bottom:16px;">
+            <div style="font-size:14px; color:#333;">
+                <span style="color:#666;">Gas boiler annualised lifetime cost:</span>
+                <strong style="color:#0F294A;"> £{gas_boiler_eac:,.0f}/yr</strong>
+            </div>
+            <div style="font-size:14px; color:#333;">
+                <span style="color:#666;">Heat pump annualised lifetime cost at today's electricity price:</span>
+                <strong style="color:#0F294A;"> £{heat_pump_eac_today:,.0f}/yr</strong>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     rows_html = ""
     for _, row in electricity_price_summary_df.iterrows():
         row_bg, message = "", ""
-        if row["heat_pump_eac_today"] < row["gas_boiler_eac"]:
+        if heat_pump_eac_today < gas_boiler_eac:
             row_bg = "background:#B7E4D8;"
             message = "Already cheaper - electricity could rise this far before parity is lost"
         elif row["required_rate"] < 0:
@@ -80,8 +101,6 @@ def render_required_electricity_price_table_section(
         rows_html += (
             f'<tr style="{row_bg}">'
             f'<td style="padding:10px 16px;">{int(row["operating_year"])}</td>'
-            f'<td style="padding:10px 16px; text-align:right;">{row["gas_boiler_eac"]:,.0f}</td>'
-            f'<td style="padding:10px 16px; text-align:right;">{row["heat_pump_eac_today"]:,.0f}</td>'
             f'<td style="padding:10px 16px; text-align:right;">{row["gas_price"]:.2f}</td>'
             f'<td style="padding:10px 16px; text-align:right; font-weight:700;">{row["required_rate"]:,.1f}</td>'
             f'<td style="padding:10px 16px; text-align:right;">{ratio_text}</td>'
@@ -93,9 +112,7 @@ def render_required_electricity_price_table_section(
         '<div style="overflow-x:auto;">'
         '<table style="width:100%; border-collapse:collapse; font-size:14px;">'
         '<tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">'
-        '<td style="padding:10px 16px;">Year</td>'
-        '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost (£)</td>'
-        '<td style="padding:10px 16px; text-align:right;">Heat pump annualised lifetime cost at today\'s electricity price (£)</td>'
+        '<td style="padding:10px 16px;">Year in lifetime</td>'
         '<td style="padding:10px 16px; text-align:right;">Gas price set in sidebar, p/kWh</td>'
         '<td style="padding:10px 16px; text-align:right;">Electricity rate needed, p/kWh</td>'
         '<td style="padding:10px 16px; text-align:right;">Implied ratio to gas</td>'
@@ -116,9 +133,23 @@ def render_required_electricity_price_table_section(
 def render_download_required_electricity_price_summary_section(
     electricity_price_summary_df: pd.DataFrame,
 ) -> None:
+
+    # Prepare dataframe for export
+    electricity_price_summary_df_for_export = electricity_price_summary_df.copy().rename(
+        columns={
+            "installation_year": "Installation year",
+            "operating_year": "Year in lifetime",
+            "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr",
+            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr",
+            "gas_price": "Gas price set in sidebar, p/kWh",
+            "required_rate": "Electricity price needed in that year, p/kWh",
+            "implied_ratio": "Electricity-to-gas price ratio needed for cost parity",
+        }
+    )
+
     st.download_button(
         "⬇ Export CSV",
-        data=electricity_price_summary_df.to_csv(index=False),
+        data=electricity_price_summary_df_for_export.to_csv(index=False),
         file_name="required_electricity_price_summary.csv",
         mime="text/csv",
         key="download_required_electricity_price_summary",

@@ -63,14 +63,32 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
             unsafe_allow_html=True,
         )
 
+    # Prepare dataframe for export
+    eac_df_for_export = (
+        eac_df.copy()
+        .drop(columns=["system"])
+        .rename(
+            columns={
+                "installation_year": "Installation year",
+                "system_label": "Heating system type",
+                "metric": "Metric",
+                "value": "Value",
+            }
+        )
+    )
+    eac_df_for_export = eac_df_for_export[
+        ["Installation year", "Heating system type", "Metric", "Value"]
+    ]
+
     with st.expander("▾ View/export underlying data"):
         st.dataframe(
-            comparison_df[comparison_df["metric"] == EAC_METRIC],
+            eac_df_for_export,
             width="stretch",
+            hide_index=True,
         )
         st.download_button(
             "⬇ Export CSV",
-            data=eac_df.to_csv(index=False),
+            data=eac_df_for_export.to_csv(index=False),
             file_name="eac_by_installation_year.csv",
             mime="text/csv",
         )
@@ -149,20 +167,37 @@ def render_eac_breakdown_section(
         unsafe_allow_html=True,
     )
 
+    # Prepare dataframe for export
     EAC_METRICS_FOR_EXPORT = [EAC_METRIC] + COMPONENT_ORDER
-
-    eac_breakdown_export_df = comparison_df[
+    eac_breakdown_df_for_export = comparison_df[
         comparison_df["metric"].isin(EAC_METRICS_FOR_EXPORT)
     ].copy()
+    eac_breakdown_df_for_export["system_label"] = eac_breakdown_df_for_export[
+        "system"
+    ].map(SYSTEM_LABELS)
+    eac_breakdown_df_for_export = eac_breakdown_df_for_export.drop(
+        columns=["system"]
+    ).rename(
+        columns={
+            "installation_year": "Installation year",
+            "system_label": "Heating system type",
+            "metric": "Metric",
+            "value": "Value",
+        }
+    )
+    eac_breakdown_df_for_export = eac_breakdown_df_for_export[
+        ["Installation year", "Heating system type", "Metric", "Value"]
+    ]
 
     with st.expander("▾ View/export underlying data"):
         st.dataframe(
-            eac_breakdown_export_df,
+            eac_breakdown_df_for_export,
             width="stretch",
+            hide_index=True,
         )
         st.download_button(
             "⬇ Export CSV",
-            data=eac_breakdown_export_df.to_csv(index=False),
+            data=eac_breakdown_df_for_export.to_csv(index=False),
             file_name="eac_breakdown_by_installation_year.csv",
             mime="text/csv",
         )
@@ -184,17 +219,36 @@ def render_eac_breakdown_section(
     cashflow_chart = build_cashflow_chart(annual_breakdown_df, installation_year)
     st.altair_chart(cashflow_chart, width="stretch")
 
-    with st.expander("▾ View/export underlying data"):
-        cashflow_df = annual_breakdown_df[
-            (annual_breakdown_df["installation_year"] == installation_year)
-            & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
-            & (annual_breakdown_df["system"].isin(SYSTEM_ORDER))
-        ].copy()
+    # Prepare dataframe for export
+    cashflow_df_for_export = annual_breakdown_df[
+        (annual_breakdown_df["installation_year"] == installation_year)
+        & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
+        & (annual_breakdown_df["system"].isin(SYSTEM_ORDER))
+    ].copy()
+    cashflow_df_for_export["system_label"] = cashflow_df_for_export["system"].map(
+        SYSTEM_LABELS
+    )
+    cashflow_df_for_export = cashflow_df_for_export.drop(columns=["system"]).rename(
+        columns={
+            "installation_year": "Installation year",
+            "operating_year": "Year in lifetime",
+            "system_label": "Heating system type",
+            "metric": "Metric",
+            "value": "Value",
+        }
+    )
+    cashflow_df_for_export = cashflow_df_for_export[
+        [
+            "Installation year",
+            "Year in lifetime",
+            "Heating system type",
+            "Metric",
+            "Value",
+        ]
+    ]
 
-        st.dataframe(
-            cashflow_df,
-            width="stretch",
-        )
+    with st.expander("▾ View/export underlying data"):
+        st.dataframe(cashflow_df_for_export, width="stretch", hide_index=True)
         st.download_button(
             "⬇ Export CSV",
             data=annual_breakdown_df.to_csv(index=False),
