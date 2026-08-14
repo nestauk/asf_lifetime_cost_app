@@ -284,7 +284,7 @@ def build_annual_breakdown_rows(
                 "Discounted running cost": discounted_running_cost,
                 "Discounted maintenance cost": discounted_maintenance_cost,
                 "Discounted capital cost": discounted_capital_cost,
-                "Discounted annual cost": (
+                "Discounted annual cost of ownership": (
                     discounted_running_cost
                     + discounted_maintenance_cost
                     + discounted_capital_cost
