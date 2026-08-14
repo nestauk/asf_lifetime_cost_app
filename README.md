@@ -39,3 +39,12 @@ The repository structure and key scripts are highlighted below:
 ## 📢 Contributor guidelines
 
 [Technical and working style guidelines](https://github.com/nestauk/ds-cookiecutter/blob/master/GUIDELINES.md)
+
+## Troubleshooting
+
+**There's been changes to `asf-lifetime-cost-model` and I want to update the package that's installed**
+Run
+```
+pip uninstall asf-lifetime-cost-model -y
+pip install -r requirements.txt --no-cache-dir
+```

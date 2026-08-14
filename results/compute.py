@@ -78,8 +78,15 @@ def build_comparison_rows(inputs: AppInputs, installation_year: int) -> list[dic
             "Heat demand (kWh/year)": heat_demand,
             "Interest rate": system.interest_rate,
             "Loan term": system.loan_term,
-            "Discounted capital cost": system.calculate_discounted_lifetime_capital_cost(
+            "Discounted capital cost (principal only)": system.calculate_discounted_lifetime_capital_cost(
                 discount_rate=DISCOUNT_RATE_DEFAULT
+            )
+            - (
+                system.calculate_discounted_lifetime_loan_interest(
+                    discount_rate=DISCOUNT_RATE_DEFAULT
+                )
+                if system.is_financed
+                else 0.0
             ),
             "Discounted lifetime loan interest": (
                 system.calculate_discounted_lifetime_loan_interest(
@@ -87,6 +94,9 @@ def build_comparison_rows(inputs: AppInputs, installation_year: int) -> list[dic
                 )
                 if system.is_financed
                 else 0.0
+            ),
+            "Discounted capital cost (total, incl. interest)": system.calculate_discounted_lifetime_capital_cost(
+                discount_rate=DISCOUNT_RATE_DEFAULT
             ),
             "Discounted lifetime maintenance cost": system.calculate_discounted_lifetime_maintenance_cost(
                 discount_rate=DISCOUNT_RATE_DEFAULT
@@ -103,8 +113,15 @@ def build_comparison_rows(inputs: AppInputs, installation_year: int) -> list[dic
                 discount_rate=DISCOUNT_RATE_DEFAULT,
                 **extra_kwargs,
             ),
-            "Equivalent Annual Cost: capital cost": system.calculate_annualised_discounted_lifetime_capital_cost(
+            "Equivalent Annual Cost: capital cost (principal only)": system.calculate_annualised_discounted_lifetime_capital_cost(
                 discount_rate=DISCOUNT_RATE_DEFAULT
+            )
+            - (
+                system.calculate_annualised_discounted_lifetime_loan_interest(
+                    discount_rate=DISCOUNT_RATE_DEFAULT
+                )
+                if system.is_financed
+                else 0.0
             ),
             "Equivalent Annual Cost: loan interest": (
                 system.calculate_annualised_discounted_lifetime_loan_interest(
@@ -112,6 +129,9 @@ def build_comparison_rows(inputs: AppInputs, installation_year: int) -> list[dic
                 )
                 if system.is_financed
                 else 0.0
+            ),
+            "Equivalent Annual Cost: capital cost (total, incl. interest)": system.calculate_annualised_discounted_lifetime_capital_cost(
+                discount_rate=DISCOUNT_RATE_DEFAULT
             ),
             "Equivalent Annual Cost: maintenance cost": system.calculate_annualised_discounted_lifetime_maintenance_cost(
                 discount_rate=DISCOUNT_RATE_DEFAULT
