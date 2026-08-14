@@ -13,6 +13,7 @@ from asf_lifetime_cost_model.models.trajectory import (
     InstallationCostTrajectory,
     SubsidyTrajectory,
 )
+from asf_lifetime_cost_model.utils.utils import deflate_to_real
 
 from config.defaults import (
     BASE_YEAR_DEFAULT,
@@ -123,12 +124,22 @@ def build_ashp_subsidies(inputs: AppInputs) -> SubsidyTrajectory:
         )
 
     if hp.subsidy_overrides:
-        trajectory.set_trajectory(hp.subsidy_overrides)
+        # hp.subsidy_overrides are in nominal terms (matching what the user
+        # sees/types in the sidebar)
+        # need to convert each to real terms per its own year
+        # since `trajectory` needs to be in real terms
+        overrides_real = {
+            year: deflate_to_real(
+                value, year, BASE_YEAR_DEFAULT, INFLATION_RATE_DEFAULT
+            )
+            for year, value in hp.subsidy_overrides.items()
+        }
+        trajectory.set_trajectory(overrides_real)
 
     return trajectory
 
 
-def build_gas_boiler_subsidies(inputs: AppInputs) -> SubsidyTrajectory:
+def build_gas_boiler_subsidies() -> SubsidyTrajectory:
     """Build a flat, zero-value subsidy trajectory for the gas boiler (no subsidy scheme)."""
     return SubsidyTrajectory(
         "gas_boiler", starting_subsidy=0.0, price_basis="real", base_year=BASE_YEAR

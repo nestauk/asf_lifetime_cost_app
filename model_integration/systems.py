@@ -75,7 +75,7 @@ def build_gas_boiler_for_year(
         lifespan=gb.lifespan,
         efficiency=gb.efficiency,
         installation_cost_trajectory=build_boiler_installation_costs(inputs),
-        subsidy_trajectory=build_gas_boiler_subsidies(inputs),
+        subsidy_trajectory=build_gas_boiler_subsidies(),
         maintenance_cost_per_visit=gb.maintenance_cost_per_visit,
         maintenance_annual_frequency=gb.maintenance_annual_frequency,
     )

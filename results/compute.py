@@ -7,9 +7,12 @@ tidy pandas DataFrame.
 """
 
 import pandas as pd
+from asf_lifetime_cost_model.utils.utils import inflate_to_nominal
 
 from config.defaults import (
+    BASE_YEAR_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
+    INFLATION_RATE_DEFAULT,
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
 )
@@ -354,11 +357,21 @@ def build_required_subsidy_df(inputs: AppInputs) -> pd.DataFrame:
             )
         )
 
-        required_subsidy = heat_pump.solve_subsidy_for_parity(
+        required_subsidy_real = heat_pump.solve_subsidy_for_parity(
             heat_demand=ashp_heat_demand,
             energy_price_trajectory=ashp_electricity_prices,
             target_eac=gas_boiler_eac,
             discount_rate=DISCOUNT_RATE_DEFAULT,
+        )
+
+        # Nominal (cash) equivalent, for the year the subsidy would actually
+        # be paid out (the installation year) - for display alongside the
+        # real-terms figure used in the actual EAC calculation
+        required_subsidy_nominal = inflate_to_nominal(
+            required_subsidy_real,
+            installation_year,
+            BASE_YEAR_DEFAULT,
+            INFLATION_RATE_DEFAULT,
         )
 
         rows.append(
@@ -366,7 +379,8 @@ def build_required_subsidy_df(inputs: AppInputs) -> pd.DataFrame:
                 "installation_year": installation_year,
                 "gas_boiler_eac": gas_boiler_eac,
                 "heat_pump_no_subsidy_eac": heat_pump_no_subsidy_eac,
-                "required_subsidy": required_subsidy,
+                "required_subsidy_real": required_subsidy_real,
+                "required_subsidy_nominal": required_subsidy_nominal,
                 "installation_cost": heat_pump.installation_cost,
             }
         )
