@@ -39,7 +39,7 @@ COMPONENT_COLORS = {
 }
 
 EAC_METRIC = "Annualised discounted lifetime cost (Equivalent Annual Cost)"
-ANNUAL_COST_METRIC = "Discounted annual cost"
+ANNUAL_COST_METRIC = "Discounted annual cost of ownership"
 
 # Canonical ordering for the three-system charts/filters, and its label/color
 # projections, so callers don't each re-derive or re-hardcode these lists.
