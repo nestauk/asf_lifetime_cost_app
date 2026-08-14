@@ -2,10 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from components.layout import render_section_heading
-from config.defaults import (
-    INSTALL_END_YEAR,
-    INSTALL_START_YEAR,
-)
+from config.defaults import BASE_YEAR_DEFAULT, INSTALL_END_YEAR, INSTALL_START_YEAR
 from model_integration.schema import AppInputs
 from model_integration.trajectories import build_gas_prices
 from results.charts import build_required_price_ratio_chart
@@ -48,7 +45,13 @@ def render_required_price_ratio_section(
     chart = build_required_price_ratio_chart(required_price_ratio, current_ratio)
     st.altair_chart(chart, width="stretch")
 
-    render_section_heading("Year by year")
+    st.divider()
+
+    st.markdown(
+        f'<div style="font-weight:700; color:#0F294A; font-size:16px; margin-bottom:2px;">'
+        f"Year by year breakdown, installed {installation_year}</div>",
+        unsafe_allow_html=True,
+    )
     electricity_price_summary_df = build_required_electricity_price_summary_df(
         inputs=inputs, installation_year=installation_year
     )
@@ -63,8 +66,14 @@ def render_required_price_ratio_section(
 def render_required_electricity_price_table_section(
     electricity_price_summary_df: pd.DataFrame,
 ) -> None:
-    # gas_boiler_eac and heat_pump_eac_today are constant across every row —
-    # pull them out once, rather than repeating the same number every row.
+    st.markdown(
+        f'<div style="font-size:12px; color:#888; margin-top:-12px; margin-bottom:12px;">'
+        f"All £ and p/kWh figures  are in {BASE_YEAR_DEFAULT} real terms.</div>",
+        unsafe_allow_html=True,
+    )
+
+    # gas_boiler_eac and heat_pump_eac_today are constant across every row
+    # displaying them once rather than repeating in table
     gas_boiler_eac = electricity_price_summary_df["gas_boiler_eac"].iloc[0]
     heat_pump_eac_today = electricity_price_summary_df["heat_pump_eac_today"].iloc[0]
 
@@ -114,8 +123,8 @@ def render_required_electricity_price_table_section(
         '<tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">'
         '<td style="padding:10px 16px;">Year in lifetime</td>'
         '<td style="padding:10px 16px; text-align:right;">Gas price set in sidebar, p/kWh</td>'
-        '<td style="padding:10px 16px; text-align:right;">Electricity rate needed, p/kWh</td>'
-        '<td style="padding:10px 16px; text-align:right;">Implied ratio to gas</td>'
+        '<td style="padding:10px 16px; text-align:right;">Electricity price needed in that year, p/kWh</td>'
+        '<td style="padding:10px 16px; text-align:right;">Implied price ratio needed for cost parity</td>'
         '<td style="padding:10px 16px;">What this means</td>'
         "</tr>" + rows_html + "</table>"
         "</div>"

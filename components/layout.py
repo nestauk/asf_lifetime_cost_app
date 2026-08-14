@@ -86,7 +86,7 @@ def render_page_title(title: str, subtitle: str = "") -> None:
             color:#0F294A;
             font-weight:800;
             line-height:1.15;
-            margin:10px 0 -14px 0;
+            margin:10px 0 0px 0;
         ">{title}</h2>
         """,
         unsafe_allow_html=True,
@@ -99,7 +99,7 @@ def render_page_title(title: str, subtitle: str = "") -> None:
 
 
 def render_section_heading(title: str) -> None:
-    """Render a bold navy section heading with a thick black underline, matching the mockup."""
+    """Render a bold navy section heading with a thick black underline."""
     st.markdown(
         f"""
         <h3 style="color:#0F294A; font-weight:600; font-size:22px; margin:0 0 -14px 0; line-height:1.2; font-family:'Averta', sans-serif !important;">{title}</h3>
