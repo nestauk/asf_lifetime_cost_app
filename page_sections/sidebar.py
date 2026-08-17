@@ -233,7 +233,7 @@ def _render_fuel_price_inputs(
 
     current_price = st.number_input(
         f"{fuel_label} unit price today (p/kWh)",
-        value=round(default_current_price, 2),
+        value=default_current_price,
         step=0.01,
         key=_gen_key(f"{key_prefix}_current_price"),
     )

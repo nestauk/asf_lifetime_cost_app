@@ -263,7 +263,7 @@ def build_cost_breakdown_chart(
             tooltip=[
                 alt.Tooltip("system_label:N", title="System"),
                 alt.Tooltip("component_label:N", title="Component"),
-                alt.Tooltip("value:Q", title="£/year", format=",.0f"),
+                alt.Tooltip("value:Q", title="£/year", format=",.2f"),
             ],
         )
     )
