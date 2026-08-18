@@ -26,11 +26,57 @@ from results.charts import (
     build_cashflow_chart,
     build_cost_breakdown_chart,
     build_eac_by_year_chart,
-    build_eac_headline_messages,
+    build_eac_headline_metrics,
 )
 
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 OPERATING_YEARS = range(OPERATING_START_YEAR, OPERATING_END_YEAR + 1)
+
+
+def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
+    """Render the two headline saving stat tiles: bold title, large value with
+    a directional triangle, a "vs gas boiler" delta line, and a subsidy
+    saving line specific to that installation year.
+    """
+
+    def _card_html(m: dict) -> str:
+        year = m["year"]
+        saving = m["saving"]
+        saving_pct = m["saving_pct"]
+        subsidy_saving = m["subsidy_saving"]
+
+        if saving >= 0:
+            title = f"Heat pump saving · installed {year}"
+            value_text = f"£{saving:,.0f}/yr"
+            value_color = "#18A48C"
+            arrow = "&#9660;"  # ▼ cost is lower, good
+            pct_sign = "-"
+        else:
+            title = f"Heat pump costs more · installed {year}"
+            value_text = f"£{abs(saving):,.0f}/yr"
+            value_color = "#EB003B"
+            arrow = "&#9650;"  # ▲ cost is higher
+            pct_sign = "+"
+
+        return f"""
+        <div style="background:#EAF6F5; border-left: 4px solid #18A48C;border-radius:4px; padding:16px;">
+            <div style="font-size:14px; font-weight:600; color:#0F294A; margin-bottom:2px;">{title}</div>
+            <div style="font-size:20px; font-weight:600; color:{value_color};">{value_text} <span style="font-size:14px;">{arrow}</span><span style="color:{value_color}; font-size:14px;font-weight:500;">
+                {pct_sign}{abs(saving_pct):.0f}%</span></div>
+            <div style="font-size:12px; color:#666; margin-top:4px;">
+                vs gas boiler 
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">
+                Subsidy saves <span style="color:#0F6E56; font-weight:500;">£{subsidy_saving:,.0f}/yr</span>
+            </div>
+        </div>
+        """
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(_card_html(metrics["first_year"]), unsafe_allow_html=True)
+    with col2:
+        st.markdown(_card_html(metrics["last_year"]), unsafe_allow_html=True)
 
 
 def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
@@ -41,27 +87,21 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
     render_section_heading(
         "Annualised lifetime cost comparison by year the heating system is installed"
     )
-    st.markdown(
-        '<div style="font-size:13px; color:#666; margin-top:-20px; margin-bottom:0px;">'
-        "Each point shows the annualised lifetime cost of a new system installed in that year - not the cost of operating over time.</div>",
-        unsafe_allow_html=True,
-    )
+
     with st.container(border=False):
+        # Headline metrics
+        metrics = build_eac_headline_metrics(eac_df)
+        render_eac_headline_metrics(metrics)
+
+        st.markdown(
+            '<div style="font-size:13px; color:#666; margin-top:16px; margin-bottom:0px;">'
+            "Each point shows the annualised lifetime cost of a new system installed in that year - not the cost of operating over time.</div>",
+            unsafe_allow_html=True,
+        )
+
         # Chart
         chart = build_eac_by_year_chart(comparison_df)
         st.altair_chart(chart, width="stretch")
-
-        # Headline banner
-        headlines = build_eac_headline_messages(eac_df)
-        headline_html = "".join(
-            f'<div style="margin-bottom:4px;">&bull; {msg}</div>' for msg in headlines
-        )
-        st.markdown(
-            f'<div style="font-size:14px; color:#0F294A; '
-            f"background:#EAF6F5; border-left:4px solid #97D9E3; padding:12px 16px; "
-            f'border-radius:4px; margin-bottom:16px;">{headline_html}</div>',
-            unsafe_allow_html=True,
-        )
 
     # Prepare dataframe for export
     eac_df_for_export = (
