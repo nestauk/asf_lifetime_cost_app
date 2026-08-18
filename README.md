@@ -102,7 +102,7 @@ config/                             # Shared, model-independent configuration
 
 [Technical and working style guidelines](https://github.com/nestauk/ds-cookiecutter/blob/master/GUIDELINES.md)
 
-## Troubleshooting
+## ❓ Troubleshooting
 
 **There's been changes to `asf-lifetime-cost-model` and I want to update the package that's installed**
 
