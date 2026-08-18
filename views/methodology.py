@@ -7,7 +7,6 @@ from components.layout import render_page_title, render_section_heading
 from config.defaults import (
     BASE_YEAR_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
-    INFLATION_RATE_DEFAULT,
 )
 
 render_page_title(
@@ -46,26 +45,26 @@ input_rows = [
     (
         "Fixed",
         "Base year",
-        f"{BASE_YEAR_DEFAULT}",
+        "—",
         f"The year all costs are expressed in real terms relative to. Every £ figure in this tool is '{BASE_YEAR_DEFAULT} real £'.",
     ),
     (
         "Fixed",
         "Inflation rate",
-        f"{INFLATION_RATE_DEFAULT:.1%}",
+        "%",
         "Used to convert nominal (actual cash) figures into real terms, and vice versa.",
     ),
     (
         "Fixed",
         "Discount rate",
-        f"{DISCOUNT_RATE_DEFAULT:.1%}",
+        "%",
         "Converts future costs into present value. Used in every discounted and annualised (EAC) calculation.",
     ),
     (
         "Fixed",
         "Installation year range",
-        "2026–2035",
-        "The range of years a system can be installed in, across every chart and table in this tool.",
+        "—",
+        "The range of years a system can be installed in, across every chart and table in this tool (2026-2035).",
     ),
     (
         "Household",
@@ -76,7 +75,7 @@ input_rows = [
     (
         "Household",
         "Extra heat demand with a heat pump",
-        "e.g. 0%",
+        "%",
         "Applied on top of the gas boiler baseline to get the heat pump's heat demand.",
     ),
     (
@@ -141,8 +140,8 @@ input_rows = [
     (
         "Heat pump",
         "Maintenance cost",
-        "£ per visit",
-        "A fixed annual cost, assumed one service a year. Adds directly to maintenance cost.",
+        "£ / yr",
+        "A fixed annual cost. Adds directly to maintenance cost.",
     ),
     (
         "Gas boiler",
@@ -165,8 +164,8 @@ input_rows = [
     (
         "Gas boiler",
         "Maintenance cost",
-        "£ per visit",
-        "Same role as heat pump maintenance, for the gas boiler.",
+        "£ / yr",
+        "A fixed annual cost. Adds directly to maintenance cost.",
     ),
     (
         "Gas boiler",
@@ -239,11 +238,11 @@ st.markdown(
     <div style="font-size:14px; color:#333; line-height:1.7;">
     In this app, we use this package to:<br>
     &bull; <b>Build year-by-year cost and price trajectories</b> that are either held flat, growing
-    at a set rate, or set to custom values you've entered — for installation cost, subsidy, and
+    at a set rate, or set to custom values you've entered - for installation cost, subsidy, and
     energy prices.<br>
     &bull; <b>Calculate the lifetime cost of a heat pump or gas boiler</b>, via a
     <code>HeatingSystem</code> class with methods for capital, maintenance, and running cost
-    calculations — including the effect that money spent later is worth less today than money
+    calculations - including the effect that money spent later is worth less today than money
     spent now (discounting), converted into one comparable figure per year (Equivalent Annual
     Cost).<br>
     &bull; <b>Works out exactly what subsidy or electricity price</b> would make two systems'
