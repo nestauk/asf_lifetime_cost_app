@@ -6,6 +6,7 @@ and Altair.
 """
 
 import altair as alt
+import numpy as np
 import pandas as pd
 
 SYSTEM_COLORS = {
@@ -63,11 +64,7 @@ def get_eac(comparison_df: pd.DataFrame, installation_year: int, system: str) ->
 
 
 def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
-    """Line chart: annualised lifetime cost (EAC) by installation year, one line per system.
-
-    The no-subsidy heat pump line is drawn dashed/lighter since it's a
-    reference line, not part of the core comparison.
-    """
+    """Line chart: annualised lifetime cost (EAC) by installation year, one line per system."""
     eac_df = comparison_df[comparison_df["metric"] == EAC_METRIC].copy()
     eac_df["system_label"] = eac_df["system"].map(SYSTEM_LABELS)
 
@@ -82,11 +79,57 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
 
     max_year = eac_df["installation_year"].max()
 
+    # Pivot heat pump vs gas boiler for the shaded gap band
+    gap_df = (
+        eac_df[eac_df["system"].isin(["Heat pump", "Gas boiler"])]
+        .pivot(index="installation_year", columns="system", values="value")
+        .reset_index()
+    )
+    gap_df.columns.name = None
+
+    gap_df["gap_status"] = np.where(
+        gap_df["Heat pump"] <= gap_df["Gas boiler"],
+        "Heat pump cheaper",
+        "Heat pump more expensive",
+    )
+
+    gap_band = (
+        alt.Chart(gap_df)
+        .mark_area(opacity=0.12, interpolate="linear")
+        .encode(
+            x=alt.X("installation_year:O", scale=alt.Scale(padding=0)),
+            y=alt.Y("Heat pump:Q", scale=alt.Scale(domain=y_domain)),
+            y2="Gas boiler:Q",
+            color=alt.Color(
+                "gap_status:N",
+                scale=alt.Scale(
+                    domain=["Heat pump cheaper", "Heat pump more expensive"],
+                    range=["#18A48C", "#EB003B"],
+                ),
+                legend=None,
+            ),
+        )
+    )
+
     base = alt.Chart(eac_df).encode(
         x=alt.X(
             "installation_year:O",
             title="Installation year",
-            axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
+            axis=alt.Axis(
+                labelAngle=0,
+                titleFontWeight="bold",
+                titleFontSize=13,
+                labelFontWeight="bold",
+                labelFontSize=13,
+                labelPadding=8,
+                grid=True,
+                gridColor="#cccccc",
+                gridDash=[2, 2],
+                gridOpacity=0.6,
+                domainColor="#888888",
+                tickSize=6,
+                tickColor="#888888",
+            ),
             scale=alt.Scale(padding=0),
         ),
         y=alt.Y(
@@ -96,6 +139,8 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
             axis=alt.Axis(
                 tickCount=6,
                 titleFontWeight="bold",
+                gridDash=[1, 3],
+                gridOpacity=0.4,
             ),
         ),
         color=alt.Color(
@@ -115,11 +160,21 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
 
     solid_lines = base.transform_filter(
         alt.datum.system != NO_SUBSIDY_SYSTEM
-    ).mark_line(point=True, strokeWidth=2.5)
+    ).mark_line(
+        point=alt.OverlayMarkDef(
+            size=110, filled=True, stroke="white", strokeWidth=1.5
+        ),
+        strokeWidth=2.5,
+    )
 
     dashed_line = base.transform_filter(
         alt.datum.system == NO_SUBSIDY_SYSTEM
-    ).mark_line(point=True, strokeWidth=2, strokeDash=[6, 4], opacity=0.6)
+    ).mark_line(
+        point=alt.OverlayMarkDef(size=90, filled=True, stroke="white", strokeWidth=1.5),
+        strokeWidth=2,
+        strokeDash=[6, 4],
+        opacity=0.6,
+    )
 
     end_labels = (
         base.transform_filter(alt.datum.installation_year == max_year)
@@ -138,8 +193,12 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
         .encode(text="label_text:N")
     )
 
-    return (dashed_line + solid_lines + end_labels).properties(
-        height=500, padding={"top": 20, "bottom": 10, "left": 0, "right": 0}
+    return (
+        (gap_band + dashed_line + solid_lines + end_labels)
+        .resolve_scale(color="independent")
+        .properties(
+            height=500, padding={"top": 20, "bottom": 10, "left": 0, "right": 0}
+        )
     )
 
 
@@ -147,55 +206,42 @@ def _value_for_label(year_df: pd.DataFrame, system_label: str) -> float:
     return year_df[year_df["system_label"] == system_label]["value"].iloc[0]
 
 
-def build_eac_headline_messages(eac_df: pd.DataFrame) -> list[str]:
-    """Build the full set of headline messages: cost comparison, subsidy effect, and trend consistency."""
-    messages = []
+def build_eac_headline_metrics(eac_df: pd.DataFrame) -> dict[str, dict]:
+    """Build the two headline stat-tile values: heat pump saving vs. gas boiler
+    in the first and last installation years shown, plus the subsidy saving
+    for each year as a third line.
 
-    # --- Direct comparison in the first installation year ---
+    Positive `saving` means the heat pump is cheaper than the gas boiler;
+    negative means the gas boiler is cheaper. `subsidy_saving` is always the
+    amount the subsidy takes off the heat pump's annualised cost that year.
+    """
+
+    def _metrics_for_year(year: int) -> dict:
+        year_df = eac_df[eac_df["installation_year"] == year]
+        heat_pump_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump"])
+        gas_boiler_eac = _value_for_label(year_df, SYSTEM_LABELS["Gas boiler"])
+        no_subsidy_eac = _value_for_label(
+            year_df, SYSTEM_LABELS["Heat pump (no subsidy)"]
+        )
+
+        saving = gas_boiler_eac - heat_pump_eac
+        saving_pct = (saving / gas_boiler_eac * 100) if gas_boiler_eac else 0
+        subsidy_saving = no_subsidy_eac - heat_pump_eac
+
+        return {
+            "year": year,
+            "saving": saving,
+            "saving_pct": saving_pct,
+            "subsidy_saving": subsidy_saving,
+        }
+
     first_year = eac_df["installation_year"].min()
-    year_df = eac_df[eac_df["installation_year"] == first_year]
+    last_year = eac_df["installation_year"].max()
 
-    heat_pump_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump"])
-    gas_boiler_eac = _value_for_label(year_df, SYSTEM_LABELS["Gas boiler"])
-    difference = heat_pump_eac - gas_boiler_eac
-
-    comparison_word = "more" if difference > 0 else "less"
-    messages.append(
-        f"A heat pump installed in {first_year} costs <strong>£{abs(difference):,.0f}</strong> "
-        f"{comparison_word} a year than a gas boiler."
-    )
-
-    # --- Subsidy effect, in the first installation year ---
-    no_subsidy_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump (no subsidy)"])
-    subsidy_saving = no_subsidy_eac - heat_pump_eac
-    messages.append(
-        f"The subsidy saves <strong>£{subsidy_saving:,.0f}</strong> a year on the heat pump's cost."
-    )
-
-    # --- Winner across installation years ---
-    pivot = eac_df.pivot(
-        index="installation_year", columns="system_label", values="value"
-    )
-    hp_col, gb_col = SYSTEM_LABELS["Heat pump"], SYSTEM_LABELS["Gas boiler"]
-    diff_series = pivot[hp_col] - pivot[gb_col]
-
-    if (diff_series > 0).all():
-        messages.append(
-            "The gas boiler stays cheaper across every installation year shown."
-        )
-    elif (diff_series < 0).all():
-        messages.append(
-            "The heat pump stays cheaper across every installation year shown."
-        )
-    else:
-        crossover_year = diff_series[
-            diff_series.apply(lambda x: x * diff_series.iloc[0] < 0)
-        ].index.min()
-        messages.append(
-            f"The cheaper option switches around <strong>{crossover_year}</strong>."
-        )
-
-    return messages
+    return {
+        "first_year": _metrics_for_year(first_year),
+        "last_year": _metrics_for_year(last_year),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +309,7 @@ def build_cost_breakdown_chart(
             tooltip=[
                 alt.Tooltip("system_label:N", title="System"),
                 alt.Tooltip("component_label:N", title="Component"),
-                alt.Tooltip("value:Q", title="£/year", format=",.0f"),
+                alt.Tooltip("value:Q", title="£/year", format=",.2f"),
             ],
         )
     )
@@ -338,7 +384,7 @@ def build_cost_breakdown_chart(
         .mark_text(
             align="left",
             dx=-60,
-            dy=-14,
+            dy=-20,
             fontSize=11,
             color="#444",
             fontWeight="bold",
