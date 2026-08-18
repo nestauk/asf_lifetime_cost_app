@@ -500,14 +500,16 @@ def build_required_subsidy_chart(
                 ),
             ),
             y=alt.Y(
-                "required_subsidy:Q",
+                "required_subsidy_real:Q",
                 title="Required subsidy (£)",
                 axis=alt.Axis(titleFontWeight="bold"),
             ),
             tooltip=[
                 alt.Tooltip("installation_year:O", title="Installation year"),
                 alt.Tooltip(
-                    "required_subsidy:Q", title="Required subsidy (£)", format=",.0f"
+                    "required_subsidy_real:Q",
+                    title="Required subsidy (£)",
+                    format=",.0f",
                 ),
             ],
         )
@@ -526,7 +528,7 @@ def build_required_subsidy_chart(
         .mark_text(
             align="left",
             dx=5,
-            dy=-6,
+            dy=-15,
             fontSize=11,
             color="#444",
             fontWeight="bold",
