@@ -67,7 +67,7 @@ def render_required_electricity_price_table_section(
     electricity_price_summary_df: pd.DataFrame,
 ) -> None:
     st.markdown(
-        f'<div style="font-size:12px; color:#888; margin-top:-12px; margin-bottom:12px;">'
+        f'<div style="font-size:12px; color:#888; margin-bottom:12px;">'
         f"All £ and p/kWh figures  are in {BASE_YEAR_DEFAULT} real terms.</div>",
         unsafe_allow_html=True,
     )
