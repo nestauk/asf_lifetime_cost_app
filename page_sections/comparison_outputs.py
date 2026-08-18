@@ -26,11 +26,57 @@ from results.charts import (
     build_cashflow_chart,
     build_cost_breakdown_chart,
     build_eac_by_year_chart,
-    build_eac_headline_messages,
+    build_eac_headline_metrics,
 )
 
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 OPERATING_YEARS = range(OPERATING_START_YEAR, OPERATING_END_YEAR + 1)
+
+
+def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
+    """Render the two headline saving stat tiles: bold title, large value with
+    a directional triangle, a "vs gas boiler" delta line, and a subsidy
+    saving line specific to that installation year.
+    """
+
+    def _card_html(m: dict) -> str:
+        year = m["year"]
+        saving = m["saving"]
+        saving_pct = m["saving_pct"]
+        subsidy_saving = m["subsidy_saving"]
+
+        if saving >= 0:
+            title = f"Heat pump saving · installed {year}"
+            value_text = f"£{saving:,.0f}/yr"
+            value_color = "#18A48C"
+            arrow = "&#9660;"  # ▼ cost is lower, good
+            pct_sign = "-"
+        else:
+            title = f"Heat pump costs more · installed {year}"
+            value_text = f"£{abs(saving):,.0f}/yr"
+            value_color = "#EB003B"
+            arrow = "&#9650;"  # ▲ cost is higher
+            pct_sign = "+"
+
+        return f"""
+        <div style="background:#EAF6F5; border-left: 4px solid #18A48C;border-radius:4px; padding:16px;">
+            <div style="font-size:14px; font-weight:600; color:#0F294A; margin-bottom:2px;">{title}</div>
+            <div style="font-size:20px; font-weight:600; color:{value_color};">{value_text} <span style="font-size:14px;">{arrow}</span><span style="color:{value_color}; font-size:14px;font-weight:500;">
+                {pct_sign}{abs(saving_pct):.0f}%</span></div>
+            <div style="font-size:12px; color:#666; margin-top:4px;">
+                vs gas boiler 
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">
+                Subsidy saves <span style="color:#0F6E56; font-weight:500;">£{subsidy_saving:,.0f}/yr</span>
+            </div>
+        </div>
+        """
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(_card_html(metrics["first_year"]), unsafe_allow_html=True)
+    with col2:
+        st.markdown(_card_html(metrics["last_year"]), unsafe_allow_html=True)
 
 
 def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
@@ -41,27 +87,21 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
     render_section_heading(
         "Annualised lifetime cost comparison by year the heating system is installed"
     )
-    st.markdown(
-        '<div style="font-size:13px; color:#666; margin-top:-20px; margin-bottom:0px;">'
-        "Each point shows the annualised lifetime cost of a new system installed in that year - not the cost of operating over time.</div>",
-        unsafe_allow_html=True,
-    )
+
     with st.container(border=False):
+        # Headline metrics
+        metrics = build_eac_headline_metrics(eac_df)
+        render_eac_headline_metrics(metrics)
+
+        st.markdown(
+            '<div style="font-size:13px; color:#666; margin-top:16px; margin-bottom:0px;">'
+            "Each point shows the annualised lifetime cost of a new system installed in that year - not the cost of operating over time.</div>",
+            unsafe_allow_html=True,
+        )
+
         # Chart
         chart = build_eac_by_year_chart(comparison_df)
         st.altair_chart(chart, width="stretch")
-
-        # Headline banner
-        headlines = build_eac_headline_messages(eac_df)
-        headline_html = "".join(
-            f'<div style="margin-bottom:4px;">&bull; {msg}</div>' for msg in headlines
-        )
-        st.markdown(
-            f'<div style="font-size:14px; color:#0F294A; '
-            f"background:#EAF6F5; border-left:4px solid #97D9E3; padding:12px 16px; "
-            f'border-radius:4px; margin-bottom:16px;">{headline_html}</div>',
-            unsafe_allow_html=True,
-        )
 
     # Prepare dataframe for export
     eac_df_for_export = (
@@ -120,9 +160,7 @@ def render_eac_breakdown_section(
     chart = build_cost_breakdown_chart(comparison_df, installation_year)
     st.altair_chart(chart)
 
-    # --- Legend table beneath the chart, matching mockup ---
-    # Includes a "Total" row (the EAC) in addition to the components
-    # that make up the stacked bars, without feeding it into the chart.
+    # --- Legend table beneath the chart ---
     legend_metrics = COMPONENT_ORDER + [EAC_METRIC]
     breakdown_df = comparison_df[
         (comparison_df["installation_year"] == installation_year)
@@ -144,28 +182,42 @@ def render_eac_breakdown_section(
             if is_total
             else ""
         )
-        return f"""
-        <tr{row_style}>
-            <td style="padding:6px 12px;">{swatch}{COMPONENT_LABELS[metric]}</td>
-            <td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Heat pump"]:,.0f}</td>
-            <td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Gas boiler"]:,.0f}</td>
-        </tr>
-        """
+        return (
+            f"<tr{row_style}>"
+            f'<td style="padding:6px 12px;">{swatch}{COMPONENT_LABELS[metric]}</td>'
+            f'<td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Heat pump"]:,.0f}</td>'
+            f'<td style="padding:6px 12px; text-align:right;">£{pivot.loc[metric, "Gas boiler"]:,.0f}</td>'
+            f"</tr>"
+        )
 
     legend_rows = "".join(_legend_row(metric) for metric in legend_metrics)
-    st.markdown(
-        f"""
-        <table style="width:100%; font-size:13px; border-collapse:collapse; margin-top:20px;">
-            <tr style="border-bottom:2px solid #ddd; font-weight:700; color:#0F294A;">
-                <td style="padding:6px 12px;">Cost component</td>
-                <td style="padding:6px 12px; text-align:right;">Air-to-water heat pump</td>
-                <td style="padding:6px 12px; text-align:right;">Gas boiler</td>
-            </tr>
-            {legend_rows}
-        </table>
-        """,
-        unsafe_allow_html=True,
+
+    # --- Difference row: heat pump EAC minus gas boiler EAC ---
+    heat_pump_total = pivot.loc[EAC_METRIC, "Heat pump"]
+    gas_boiler_total = pivot.loc[EAC_METRIC, "Gas boiler"]
+    difference = heat_pump_total - gas_boiler_total
+    difference_color = "#EB003B" if difference > 0 else "#18A48C"
+    difference_sign = "+" if difference > 0 else "\u2212"
+
+    difference_row = (
+        '<tr style="border-top:2px solid #ddd; font-weight:700;">'
+        '<td style="padding:6px 12px; color:#0F294A;">Difference (heat pump - gas boiler)</td>'
+        f'<td style="padding:6px 12px; text-align:right; color:{difference_color};">'
+        f"{difference_sign}£{abs(difference):,.0f}</td>"
+        '<td style="padding:6px 12px;"></td>'
+        "</tr>"
     )
+
+    table_html = (
+        '<table style="width:100%; font-size:13px; border-collapse:collapse; margin-top:20px;">'
+        '<tr style="border-bottom:2px solid #ddd; font-weight:700; color:#0F294A;">'
+        '<td style="padding:6px 12px;">Cost component</td>'
+        '<td style="padding:6px 12px; text-align:right;">Air-to-water heat pump</td>'
+        '<td style="padding:6px 12px; text-align:right;">Gas boiler</td>'
+        "</tr>" + legend_rows + difference_row + "</table>"
+    )
+
+    st.markdown(table_html, unsafe_allow_html=True)
 
     # Prepare dataframe for export
     EAC_METRICS_FOR_EXPORT = [EAC_METRIC] + COMPONENT_ORDER
