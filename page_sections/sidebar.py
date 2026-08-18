@@ -170,7 +170,7 @@ def render_household_section() -> tuple[float, float]:
     st.markdown(
         '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
         "The household's heat demand before switching to a heat pump. Default: median for a "
-        "3-4 bed house fitting an 8-10 kW heat pump. Adjust for a larger, smaller, or "
+        "home fitting an 8-10 kW heat pump. Adjust for a larger, smaller, or "
         "better/worse insulated home.</div>",
         unsafe_allow_html=True,
     )
@@ -233,7 +233,7 @@ def _render_fuel_price_inputs(
 
     current_price = st.number_input(
         f"{fuel_label} unit price today (p/kWh)",
-        value=round(default_current_price, 2),
+        value=default_current_price,
         step=0.01,
         key=_gen_key(f"{key_prefix}_current_price"),
     )

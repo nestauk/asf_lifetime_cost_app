@@ -21,9 +21,13 @@ DISCOUNT_RATE_DEFAULT = model_config["default_discount_rate"]
 INFLATION_RATE_DEFAULT = model_config["default_inflation_rate"]
 
 # 'Typical' household parameters
-PROPERTY_DESCRIPTION = "3-4 bed house fitting an 8-10 kW air-to-water heat pump"
-ASHP_SPACE_HEAT_DEMAND = 13_690  # kWh/year
-ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND = 3_150  # kWh/year
+PROPERTY_DESCRIPTION = "average home fitting an 8-10 kW air-to-water heat pump"
+ASHP_SPACE_HEAT_DEMAND = (
+    13_668  # kWh/year, average home fitting an 8-10 kW heat pump FY 2025/26
+)
+ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND = (
+    3_155  # kWh/year, average home fitting an 8-10 kW heat pump FY 2025/26
+)
 ASHP_TOTAL_HEAT_DEMAND_DEFAULT = (
     ASHP_SPACE_HEAT_DEMAND + ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND
 )
@@ -71,7 +75,9 @@ ASHP_TOU_DISCOUNT_DEFAULT = 0.15
 ASHP_TOU_DISCOUNT_MIN = 0.0
 ASHP_TOU_DISCOUNT_MAX = 0.50
 
-ASHP_INSTALLATION_COST_DEFAULT = 12_309.0  # £
+ASHP_INSTALLATION_COST_DEFAULT = (
+    12_500.0  # £, average home fitting an 8-10 kW heat pump FY 2025/26
+)
 ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT = -0.025
 ASHP_INSTALLATION_COST_GROWTH_RATE_MIN = -0.20
 ASHP_INSTALLATION_COST_GROWTH_RATE_MAX = 0.10
