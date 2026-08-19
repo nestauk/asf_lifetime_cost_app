@@ -118,7 +118,8 @@ def render_fixed_inputs() -> None:
 def render_user_inputs_heading() -> None:
     render_sidebar_section_header(
         "Your inputs",
-        "Set today's value and, where it matters, how each assumption changes in future years.",
+        "Set today's value and, where it matters, how each assumption changes in future years. "
+        "Reset everything with the button at the bottom of the sidebar.",
     )
     render_divider()
 
