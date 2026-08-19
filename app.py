@@ -30,7 +30,7 @@ st.set_page_config(
 
 # top banners
 render_top_bar()
-render_beta_banner()
+render_beta_banner(feedback_link="https://forms.gle/Y191WJrkY2vZzUUX9")
 
 # create Page objects
 comparison_page = st.Page(

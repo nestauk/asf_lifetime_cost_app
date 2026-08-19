@@ -74,7 +74,7 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
     st.markdown(
         f"""
         {_card_open(extra_style="margin-bottom:16px;")}
-            <div style="font-size:22px; font-weight:800; color:{NAVY}; margin-bottom:6px;">
+            <div style="font-size:20px; font-weight:800; color:{NAVY}; margin-bottom:6px;">
                 The assumptions behind these results
             </div>
             <div style="font-size:13px; color:#666; margin-bottom:4px;">
