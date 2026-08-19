@@ -1,6 +1,5 @@
 """Entry point for the Lifetime Costs App."""
 
-## Package imports
 import os
 
 import altair as alt  # For creating interactive charts with Altair
@@ -8,10 +7,13 @@ import streamlit as st  # For building the web app
 from PIL import Image  # For loading images
 
 from components.layout import render_beta_banner, render_top_bar
+from config.auth import check_password
 from config.css_style import set_css_style
-
-# Local imports
 from config.fonts_setup import nestafont
+
+# Password
+if not check_password():
+    st.stop()
 
 # Setting up themes and fonts
 alt.theme.register("nestafont", enable=True)(lambda: alt.theme.ThemeConfig(nestafont()))
