@@ -435,7 +435,7 @@ def build_cashflow_chart(
         ),
         y=alt.Y(
             "value:Q",
-            title="Annual cost of ownership (£/yr)",
+            title="Annual cost (£/yr)",
             axis=alt.Axis(labelAngle=0, titleFontWeight="bold"),
         ),
         color=alt.Color(

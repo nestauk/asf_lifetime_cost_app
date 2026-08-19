@@ -720,7 +720,8 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
     )
     st.markdown(
         '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Assumes annual servicing.</div>",
+        "Assumes annual servicing, starting the year after installation (no maintenance cost in "
+        "the installation year itself).</div>",
         unsafe_allow_html=True,
     )
 
@@ -790,7 +791,7 @@ def render_gas_boiler_section() -> GasBoilerInputs:
     )
 
     maintenance_cost_per_visit = st.number_input(
-        "Service cost (£)",
+        "Maintenance cost (£/yr)",
         min_value=0.0,
         value=BOILER_MAINTENANCE_COST_DEFAULT,
         step=1.0,
@@ -799,7 +800,8 @@ def render_gas_boiler_section() -> GasBoilerInputs:
     )
     st.markdown(
         '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Assumes annual servicing.</div>",
+        "Assumes annual servicing, starting the year after installation (no maintenance cost in "
+        "the installation year itself).</div>",
         unsafe_allow_html=True,
     )
 

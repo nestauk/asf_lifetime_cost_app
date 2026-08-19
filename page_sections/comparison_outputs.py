@@ -263,7 +263,7 @@ def render_eac_breakdown_section(
     )
     st.markdown(
         '<div style="font-size:13px; color:#666; margin-bottom:12px;">'
-        "How much each system costs per year of ownership, in present-value (2026 real £) terms. "
+        "How much each system will cost the household in each year of ownership, in present-value (2026 real £) terms. "
         "Includes upfront cost in year 0.</div>",
         unsafe_allow_html=True,
     )
