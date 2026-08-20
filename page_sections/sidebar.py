@@ -234,6 +234,7 @@ def _render_fuel_price_inputs(
 
     current_price = st.number_input(
         f"{fuel_label} unit price today (p/kWh)",
+        min_value=0.0,
         value=default_current_price,
         step=0.01,
         key=_gen_key(f"{key_prefix}_current_price"),
@@ -241,7 +242,7 @@ def _render_fuel_price_inputs(
     st.markdown(
         '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
         'Default: <a href="https://superset-asf.dap-tools.uk/superset/dashboard/asf-energy-bills/?standalone=true" '
-        'target="_blank" style="color:#888; text-decoration:underline;">latest Ofgem price cap rate</a></div>',
+        'target="_blank" style="color:#888; text-decoration:underline;">latest Ofgem price cap rate</a>. Must be zero or positive. </div>',
         unsafe_allow_html=True,
     )
 
@@ -390,17 +391,24 @@ def _render_price_ratio_callout(
         electricity_overrides,
         all_years,
     )
-    ratios = [e / g for e, g in zip(electricity_series, gas_series)]
+
+    # Guard against division by zero for any year where gas price is 0
+    ratios = [e / g if g > 0 else None for e, g in zip(electricity_series, gas_series)]
+    valid_ratios = [r for r in ratios if r is not None]
+
+    if not valid_ratios:
+        return  # no valid ratio anywhere - nothing meaningful to show
 
     current_ratio = ratios[0]
-    min_ratio, max_ratio = min(ratios), max(ratios)
+    current_ratio_text = f"{current_ratio:.2f}" if current_ratio is not None else "N/A"
+    min_ratio, max_ratio = min(valid_ratios), max(valid_ratios)
 
     st.markdown(
         f"""
         <div style="background-color:#D5F0F4; padding:10px 12px; margin:12px 0;">
             <div style="font-size:14px; font-weight:700; color:#0F294A; margin-bottom:4px;">Electricity to gas price ratio</div>
             <div style="display:flex; justify-content:space-between; font-size:13px; color:#1a3a3a; margin-bottom:4px;">
-                <span><strong>{INSTALL_START_YEAR}:</strong> {current_ratio:.2f}</span>
+                <span><strong>{INSTALL_START_YEAR}:</strong> {current_ratio_text}</span>
                 <span><strong>{INSTALL_START_YEAR}&ndash;{OPERATING_END_YEAR}:</strong> {min_ratio:.2f}&ndash;{max_ratio:.2f}</span>
             </div>
             <div style="font-size:12px; color:#557; line-height:1.4;">

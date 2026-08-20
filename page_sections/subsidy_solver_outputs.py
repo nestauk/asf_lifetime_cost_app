@@ -29,19 +29,17 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
     for _, row in required_subsidy_df.iterrows():
         year = int(row["installation_year"])
         gas_boiler_eac = row["gas_boiler_eac"]
-        heat_pump_no_subsidy_eac = row.get("heat_pump_no_subsidy_eac", None)
+        heat_pump_no_subsidy_eac = row["heat_pump_no_subsidy_eac"]
         required_subsidy_real = row["required_subsidy_real"]
         required_subsidy_nominal = row["required_subsidy_nominal"]
-        installation_cost = row.get("installation_cost", None)
+        installation_cost = row["installation_cost"]
 
         row_bg = ""
         message = ""
         if required_subsidy_real < 0:
             row_bg = "background:#B7E4D8;"
             message = "Already cheaper — no subsidy needed"
-        elif (
-            installation_cost is not None and required_subsidy_real > installation_cost
-        ):
+        elif required_subsidy_real > installation_cost:
             row_bg = "background:#F6C6D3;"
             message = (
                 "More than the installation cost - subsidy alone can't close the gap"

@@ -10,6 +10,8 @@ from asf_lifetime_cost_model import config as model_config
 from asf_lifetime_cost_model.getters import data_getters
 
 # Time horizon
+# INSTALL_END_YEAR + max system lifespan must stay <= OPERATING_END_YEAR,
+# or price trajectories won't cover a system's full operating life
 BASE_YEAR_DEFAULT = 2026
 OPERATING_START_YEAR = model_config["operating_start_year"]
 OPERATING_END_YEAR = model_config["operating_end_year"]

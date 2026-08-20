@@ -166,6 +166,14 @@ def render_eac_breakdown_section(
         (comparison_df["installation_year"] == installation_year)
         & (comparison_df["metric"].isin(legend_metrics))
     ]
+
+    duplicate_check = breakdown_df.duplicated(subset=["metric", "system"])
+    if duplicate_check.any():
+        raise ValueError(
+            f"Duplicate (metric, system) rows found for installation_year={installation_year}: "
+            f"{breakdown_df[duplicate_check][['metric', 'system']].to_dict('records')}"
+        )
+
     pivot = breakdown_df.pivot(
         index="metric", columns="system", values="value"
     ).reindex(legend_metrics)
@@ -316,17 +324,24 @@ def render_price_ratio_table(inputs: AppInputs) -> None:
     electricity_prices = build_electricity_prices(inputs)
     gas_prices = build_gas_prices(inputs)
 
-    price_ratio_by_year = {
-        year: electricity_prices.get_price(year=year) / gas_prices.get_price(year=year)
-        for year in OPERATING_YEARS
-    }
+    price_ratio_by_year = {}
+    for year in OPERATING_YEARS:
+        gas_price = gas_prices.get_price(year=year)
+        electricity_price = electricity_prices.get_price(year=year)
+        price_ratio_by_year[year] = (
+            electricity_price / gas_price if gas_price > 0 else None
+        )
 
     header_cells = "".join(
         f'<th style="padding:4px 11px; text-align:center; font-weight:700; color:#0F294A;">{year}</th>'
         for year in OPERATING_YEARS
     )
     value_cells = "".join(
-        f'<td style="padding:4px 11px; text-align:center; color:#0F294A;">{price_ratio_by_year[year]:.2f}</td>'
+        (
+            f'<td style="padding:4px 11px; text-align:center; color:#0F294A;">{price_ratio_by_year[year]:.2f}</td>'
+            if price_ratio_by_year[year] is not None
+            else '<td style="padding:4px 11px; text-align:center; color:#999;">n/a (gas prize is zero)</td>'
+        )
         for year in OPERATING_YEARS
     )
 
@@ -339,7 +354,7 @@ def render_price_ratio_table(inputs: AppInputs) -> None:
                     {header_cells}
                 </tr>
                 <tr style="background:#fff;">
-                    <td style="padding:4px 11px; font-weight:700; color:#0F294A; white-space:nowrap;">Electricity to gas price ratio</td>
+                    <td style="padding:4px 11px; font-weight:700; color:#0F294A;">Electricity to gas price ratio</td>
                     {value_cells}
                 </tr>
             </table>

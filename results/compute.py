@@ -442,12 +442,19 @@ def build_required_electricity_prices(
 
 def build_required_price_ratio(
     required_price_cap_rates: dict[int, float], gas_prices_by_year: dict[int, float]
-) -> dict[int, float]:
+) -> dict[int, float | None]:
     """Ratio of required electricity price to actual gas price, per year — the
     'target elec-gas price ratio' a household would need for parity.
+
+    Returns None for any year where gas price is zero, since the ratio is
+    undefined (rather than silently producing inf via numpy division).
     """
     return {
-        year: required_price_cap_rates[year] / gas_prices_by_year[year]
+        year: (
+            required_price_cap_rates[year] / gas_prices_by_year[year]
+            if gas_prices_by_year[year] > 0
+            else None
+        )
         for year in required_price_cap_rates
     }
 

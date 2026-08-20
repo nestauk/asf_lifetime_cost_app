@@ -51,6 +51,7 @@ SYSTEM_COLOR_RANGE = [SYSTEM_COLORS[s] for s in SYSTEM_ORDER]
 
 def get_eac(comparison_df: pd.DataFrame, installation_year: int, system: str) -> float:
     """Look up a single system's Equivalent Annual Cost for one installation year."""
+
     return comparison_df[
         (comparison_df["installation_year"] == installation_year)
         & (comparison_df["system"] == system)
@@ -202,8 +203,13 @@ def build_eac_by_year_chart(comparison_df: pd.DataFrame) -> alt.Chart:
     )
 
 
-def _value_for_label(year_df: pd.DataFrame, system_label: str) -> float:
-    return year_df[year_df["system_label"] == system_label]["value"].iloc[0]
+def _value_for_label(year_df: pd.DataFrame, system_label: str, year: int) -> float:
+    matches = year_df[year_df["system_label"] == system_label]["value"]
+    if matches.empty:
+        raise ValueError(
+            f"No data found for system_label={system_label!r} in installation_year={year}."
+        )
+    return matches.iloc[0]
 
 
 def build_eac_headline_metrics(eac_df: pd.DataFrame) -> dict[str, dict]:
@@ -216,12 +222,15 @@ def build_eac_headline_metrics(eac_df: pd.DataFrame) -> dict[str, dict]:
     amount the subsidy takes off the heat pump's annualised cost that year.
     """
 
+    if eac_df.empty:
+        raise ValueError("eac_df is empty - cannot build headline metrics.")
+
     def _metrics_for_year(year: int) -> dict:
         year_df = eac_df[eac_df["installation_year"] == year]
-        heat_pump_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump"])
-        gas_boiler_eac = _value_for_label(year_df, SYSTEM_LABELS["Gas boiler"])
+        heat_pump_eac = _value_for_label(year_df, SYSTEM_LABELS["Heat pump"], year)
+        gas_boiler_eac = _value_for_label(year_df, SYSTEM_LABELS["Gas boiler"], year)
         no_subsidy_eac = _value_for_label(
-            year_df, SYSTEM_LABELS["Heat pump (no subsidy)"]
+            year_df, SYSTEM_LABELS["Heat pump (no subsidy)"], year
         )
 
         saving = gas_boiler_eac - heat_pump_eac
@@ -253,6 +262,10 @@ def build_cost_breakdown_chart(
     comparison_df: pd.DataFrame, installation_year: int
 ) -> alt.Chart:
     """Stacked bar: EAC broken into upfront/loan interest/maintenance/running cost, for one installation year."""
+
+    if comparison_df.empty:
+        raise ValueError("comparison_df is empty - cannot build cost breakdown chart.")
+
     breakdown_df = comparison_df[
         (comparison_df["installation_year"] == installation_year)
         & (comparison_df["metric"].isin(COMPONENT_ORDER))
