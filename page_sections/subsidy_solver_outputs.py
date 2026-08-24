@@ -1,6 +1,7 @@
 """Functions to render output sections for the Subsidy Solver page."""
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
@@ -93,7 +94,7 @@ def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) 
         }
     )
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    timestamp = datetime.now(ZoneInfo("Europe/London")).strftime("%Y%m%d_%H%M")
 
     st.download_button(
         "⬇ Export CSV",

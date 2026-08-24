@@ -1,4 +1,7 @@
+"""Functions to render output sections for the Price ratio solver page."""
+
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
@@ -158,7 +161,7 @@ def render_download_required_electricity_price_summary_section(
         }
     )
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    timestamp = datetime.now(ZoneInfo("Europe/London")).strftime("%Y%m%d_%H%M")
     installation_year = int(electricity_price_summary_df["installation_year"].iloc[0])
 
     st.download_button(

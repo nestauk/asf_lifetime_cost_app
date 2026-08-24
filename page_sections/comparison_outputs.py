@@ -1,6 +1,7 @@
 """Functions to render output sections for the Lifetime Comparison page."""
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
@@ -33,7 +34,7 @@ from results.charts import (
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 OPERATING_YEARS = range(OPERATING_START_YEAR, OPERATING_END_YEAR + 1)
 
-timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+timestamp = datetime.now(ZoneInfo("Europe/London")).strftime("%Y%m%d_%H%M")
 
 
 def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
