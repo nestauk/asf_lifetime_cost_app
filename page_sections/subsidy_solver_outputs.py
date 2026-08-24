@@ -1,5 +1,7 @@
 """Functions to render output sections for the Subsidy Solver page."""
 
+from datetime import datetime
+
 import pandas as pd
 import streamlit as st
 
@@ -91,10 +93,12 @@ def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) 
         }
     )
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+
     st.download_button(
         "⬇ Export CSV",
         data=required_subsidy_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-        file_name="required_subsidy_by_installation_year.csv",
+        file_name=f"required_subsidy_by_installation_year_{timestamp}.csv",
         mime="text/csv",
         key="download_required_subsidy_by_installation_year",
     )
