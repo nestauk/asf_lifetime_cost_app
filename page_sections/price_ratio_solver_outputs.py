@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas as pd
 import streamlit as st
 
@@ -149,17 +151,22 @@ def render_download_required_electricity_price_summary_section(
             "installation_year": "Installation year",
             "operating_year": "Year in lifetime",
             "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr",
-            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr",
+            "heat_pump_eac_today": "Annualised lifetime cost of heat pump at today's electricity price, £/yr",
             "gas_price": "Gas price set in sidebar, p/kWh",
             "required_rate": "Electricity price needed in that year, p/kWh",
             "implied_ratio": "Electricity-to-gas price ratio needed for cost parity",
         }
     )
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    installation_year = int(electricity_price_summary_df["installation_year"].iloc[0])
+
     st.download_button(
         "⬇ Export CSV",
-        data=electricity_price_summary_df_for_export.to_csv(index=False),
-        file_name="required_electricity_price_summary.csv",
+        data=electricity_price_summary_df_for_export.to_csv(index=False).encode(
+            "utf-8-sig"
+        ),
+        file_name=f"electricity_gas_price_ratio_installed_{installation_year}_{timestamp}.csv",
         mime="text/csv",
         key="download_required_electricity_price_summary",
     )

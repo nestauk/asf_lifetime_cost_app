@@ -76,7 +76,8 @@ input_rows = [
         "The property's baseline heat need (space heat + hot water) met by a gas boiler, before "
         "switching to a heat pump. Used to calculate the gas boiler's running cost. Default value "
         "matches the median heat demand for a home installing an 8-10 kW air-to-water heat pump in "
-        "the 2025/26 financial year (Source: Nesta analysis of MCS installations data), since the "
+        "the 2025/26 financial year <span style='color:red;'>(TO BE CONFIRMED, MIGHT BE REPLACED WITH NON-MCS SOURCED VALUE "
+        "- Source: Nesta analysis of MCS installations data)</span>, since the "
         "heat pump uplift defaults to 0% — at any other uplift setting, this figure would be lower "
         "than the heat pump's own demand.",
     ),
@@ -269,8 +270,8 @@ st.markdown(
     &bull; <b>Build year-by-year cost and price trajectories</b> that are either held flat, growing
     at a set rate, or set to custom values you've entered - for installation cost, subsidy, and
     energy prices.<br>
-    &bull; <b>Calculate the lifetime cost of a heat pump or gas boiler</b>, via a
-    <code>HeatingSystem</code> class with methods for capital, maintenance, and running cost
+    &bull; <b>Calculate the lifetime cost of a heat pump or gas boiler</b>, via a dedicated
+    "HeatingSystem" class with methods for capital, maintenance, and running cost
     calculations - including the effect that money spent later is worth less today than money
     spent now (discounting), converted into one comparable figure per year (Equivalent Annual
     Cost).<br>
@@ -327,7 +328,7 @@ with col2:
             </div>
             <div style="font-size:14px; color:#333; line-height:1.8;">
             &bull; <b>"Today's price" means {BASE_YEAR_DEFAULT}.</b> Every system starts from
-            {BASE_YEAR_DEFAULT}'s prices and costs, whatever installation year is selected — a system
+            {BASE_YEAR_DEFAULT}'s prices and costs, whatever installation year is selected - e.g., a system
             installed in 2035 still applies its growth trend starting from {BASE_YEAR_DEFAULT}, not
             2035.<br><br>
             &bull; <b>Default energy prices reflect the latest published Ofgem rates, which may not yet be in
@@ -379,10 +380,6 @@ render_callout(
     f"<b>{DISCOUNT_RATE_DEFAULT:.1%}</b> in line with HM Treasury Green Book guidance. "
     "EAC takes account of the timing of each cost: the upfront installation cost is counted "
     "at its full value, while future running and maintenance costs are discounted.<br><br>"
-    "<b>Two payment conventions are used:</b> EAC uses an <b>annuity-due</b> convention "
-    "because the first operating year's cost is counted immediately. Loan repayments use an "
-    "<b>ordinary annuity</b> because the first repayment is made one year after installation. "
-    "This reflects the different timing of the two types of payment.<br><br>"
     "If a purchase is financed, the repayments occur in future years and are therefore "
     "discounted as future costs. In all cases, EAC converts the different payment schedules "
     "into one annual figure for fair comparison."

@@ -490,17 +490,36 @@ def build_cashflow_chart(
 def build_required_subsidy_chart(
     required_subsidy_df: pd.DataFrame, current_subsidy: float = 7_500.0
 ) -> alt.Chart:
-    """Line chart: required subsidy by installation year, with a dashed reference line
-    showing the current/default subsidy level for comparison.
+    """Line chart: required subsidy by installation year, with installation cost
+    plotted as a second reference line, and a dashed rule showing the
+    current/default subsidy level for comparison.
     """
     installation_years = sorted(required_subsidy_df["installation_year"].unique())
 
+    # Melt into long form so both lines share a color legend
+    lines_df = required_subsidy_df.melt(
+        id_vars=["installation_year"],
+        value_vars=["required_subsidy_real", "installation_cost"],
+        var_name="series",
+        value_name="value",
+    )
+
+    series_labels = {
+        "required_subsidy_real": "Required subsidy",
+        "installation_cost": "Installation cost",
+    }
+    lines_df["series"] = lines_df["series"].map(series_labels)
+
+    color_scale = alt.Scale(
+        domain=["Required subsidy", "Installation cost"],
+        range=["#0000FF", "#F6A4B7"],
+    )
+
     line = (
-        alt.Chart(required_subsidy_df)
+        alt.Chart(lines_df)
         .mark_line(
-            point=alt.OverlayMarkDef(filled=True, color="#0000FF"),
+            point=alt.OverlayMarkDef(filled=True),
             strokeWidth=2.5,
-            color="#0000FF",
         )
         .encode(
             x=alt.X(
@@ -513,17 +532,20 @@ def build_required_subsidy_chart(
                 ),
             ),
             y=alt.Y(
-                "required_subsidy_real:Q",
-                title="Required subsidy (£)",
+                "value:Q",
+                title="Amount (£)",
                 axis=alt.Axis(titleFontWeight="bold"),
+            ),
+            color=alt.Color(
+                "series:N",
+                title=None,
+                scale=color_scale,
+                legend=alt.Legend(orient="top"),
             ),
             tooltip=[
                 alt.Tooltip("installation_year:O", title="Installation year"),
-                alt.Tooltip(
-                    "required_subsidy_real:Q",
-                    title="Required subsidy (£)",
-                    format=",.0f",
-                ),
+                alt.Tooltip("series:N", title="Series"),
+                alt.Tooltip("value:Q", title="Amount (£)", format=",.0f"),
             ],
         )
     )

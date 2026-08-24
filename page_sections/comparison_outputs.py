@@ -1,5 +1,7 @@
 """Functions to render output sections for the Lifetime Comparison page."""
 
+from datetime import datetime
+
 import pandas as pd
 import streamlit as st
 
@@ -16,7 +18,6 @@ from model_integration.trajectories import (
     build_gas_prices,
 )
 from results.charts import (
-    ANNUAL_COST_METRIC,
     COMPONENT_COLORS,
     COMPONENT_LABELS,
     COMPONENT_ORDER,
@@ -31,6 +32,8 @@ from results.charts import (
 
 INSTALLATION_YEARS = range(INSTALL_START_YEAR, INSTALL_END_YEAR + 1)
 OPERATING_YEARS = range(OPERATING_START_YEAR, OPERATING_END_YEAR + 1)
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
 
 def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
@@ -129,7 +132,7 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
         st.download_button(
             "⬇ Export CSV",
             data=eac_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-            file_name="eac_by_installation_year.csv",
+            file_name=f"equivalent_annualised_cost_by_installation_year_{timestamp}.csv",
             mime="text/csv",
         )
 
@@ -255,10 +258,11 @@ def render_eac_breakdown_section(
             width="stretch",
             hide_index=True,
         )
+
         st.download_button(
             "⬇ Export CSV",
             data=eac_breakdown_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-            file_name="eac_breakdown_by_installation_year.csv",
+            file_name=f"equivalent_annualised_cost_breakdown_by_installation_year_{timestamp}.csv",
             mime="text/csv",
         )
 
@@ -280,9 +284,16 @@ def render_eac_breakdown_section(
     st.altair_chart(cashflow_chart, width="stretch")
 
     # Prepare dataframe for export
+    annual_cost_metrics_for_export = [
+        "Discounted running cost",
+        "Discounted maintenance cost",
+        "Discounted capital cost",
+        "Discounted annual cost of ownership",
+    ]
+
     cashflow_df_for_export = annual_breakdown_df[
         (annual_breakdown_df["installation_year"] == installation_year)
-        & (annual_breakdown_df["metric"] == ANNUAL_COST_METRIC)
+        & (annual_breakdown_df["metric"].isin(annual_cost_metrics_for_export))
         & (annual_breakdown_df["system"].isin(SYSTEM_ORDER))
     ].copy()
     cashflow_df_for_export["system_label"] = cashflow_df_for_export["system"].map(
@@ -307,12 +318,13 @@ def render_eac_breakdown_section(
         ]
     ]
 
-    with st.expander("▾ View/export underlying data"):
+    with st.expander("▾ View/export more detailed underlying data"):
         st.dataframe(cashflow_df_for_export, width="stretch", hide_index=True)
+        installation_year = int(cashflow_df_for_export["Installation year"].iloc[0])
         st.download_button(
             "⬇ Export CSV",
             data=annual_breakdown_df.to_csv(index=False).encode("utf-8-sig"),
-            file_name="cost_of_ownership_annual_breakdown.csv",
+            file_name=f"cost_of_ownership_annual_breakdown_installed_{installation_year}_{timestamp}.csv",
             mime="text/csv",
         )
 
