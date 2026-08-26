@@ -33,11 +33,16 @@ render_top_bar()
 render_beta_banner(feedback_link="https://forms.gle/Y191WJrkY2vZzUUX9")
 
 # create Page objects
+landing_page = st.Page(
+    "views/landing.py",
+    title="About",
+    icon="📍",
+    default=True,
+)
 comparison_page = st.Page(
     "views/lifetime_cost_comparison.py",
     title="Lifetime cost comparison",
-    icon="🏠",
-    default=True,
+    icon="📊",
 )
 solve_subsidy_page = st.Page(
     "views/solve_subsidy.py",
@@ -60,6 +65,7 @@ methodology_page = st.Page(
 pg = st.navigation(
     {
         "Pages": [
+            landing_page,
             comparison_page,
             solve_subsidy_page,
             solve_electricity_price_page,
