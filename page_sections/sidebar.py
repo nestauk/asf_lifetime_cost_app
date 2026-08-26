@@ -236,7 +236,7 @@ def _render_fuel_price_inputs(
         f"{fuel_label} unit price today (p/kWh)",
         min_value=0.0,
         value=default_current_price,
-        step=0.01,
+        step=1.0,
         key=_gen_key(f"{key_prefix}_current_price"),
     )
     st.markdown(
@@ -618,7 +618,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         "Installation cost today (£)",
         min_value=0.0,
         value=ASHP_INSTALLATION_COST_DEFAULT,
-        step=1.0,
+        step=100.0,
         format="%.2f",
         key=_gen_key("ashp_current_installation_input"),
     )
@@ -724,7 +724,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         "Maintenance cost (£)",
         min_value=0.0,
         value=ASHP_MAINTENANCE_COST_DEFAULT,
-        step=1.0,
+        step=10.0,
         key=_gen_key("ashp_maintenance_cost_input"),
     )
     st.markdown(
@@ -773,7 +773,7 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         "Installation cost (£)",
         min_value=0.0,
         value=BOILER_INSTALLATION_COST_DEFAULT,
-        step=1.0,
+        step=100.0,
         format="%.2f",
         key=_gen_key("boiler_installation_cost_input"),
     )
@@ -803,7 +803,7 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         "Maintenance cost (£/yr)",
         min_value=0.0,
         value=BOILER_MAINTENANCE_COST_DEFAULT,
-        step=1.0,
+        step=10.0,
         format="%.2f",
         key=_gen_key("boiler_maintenance_cost_input"),
     )
