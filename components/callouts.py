@@ -1,4 +1,4 @@
-"""TODO"""
+"""Shared callout and divider components used across multiple pages."""
 
 import streamlit as st
 

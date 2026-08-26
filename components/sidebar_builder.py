@@ -1,4 +1,4 @@
-"""TODO"""
+"""Sidebar components: section headers and read-only 'locked' value displays."""
 
 import streamlit as st
 
