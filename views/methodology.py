@@ -113,10 +113,9 @@ input_rows = [
     (
         "Heat pump",
         "Time-of-use tariff discount",
-        "15%",
+        "0%",
         "The saving assumed on the electricity unit rate for a time-of-use tariff. Reduces the effective electricity price used in the heat pump's running cost only. "
-        "Default assumes that households use a time of use tariff and get a 15% discount on running costs compared to the price cap. This reflects the results of modelling "
-        "done by Cornwall Insights for Nesta, although other estimates find similar results.",
+        "Default assumes no time-of-use tariff discount, so the standard price cap rate applies.",
     ),
     (
         "Heat pump",
@@ -189,10 +188,12 @@ input_rows = [
     (
         "Gas boiler",
         "Include gas standing charge",
-        "Included",
-        "If included in the gas boiler's cost calculation, adds the daily gas standing charge to running cost - reflecting a household that could "
-        "fully disconnect from gas if it switched to a heat pump (no other gas appliances). Uses the latest Ofgem price cap standing "
-        "charge, held constant across the system's lifespan and every installation year.",
+        "Excluded",
+        "Default assumes the household would keep a gas connection anyway (e.g. for cooking), so "
+        "the standing charge isn't a genuine consequence of the heating choice and is excluded from "
+        "running cost. If included instead, it reflects a household that could fully disconnect from "
+        "gas if it switched to a heat pump (no other gas appliances) - using the latest Ofgem price "
+        "cap standing charge, held constant across the system's lifespan and every installation year.",
     ),
 ]
 
