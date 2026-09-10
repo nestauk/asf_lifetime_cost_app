@@ -1,4 +1,4 @@
-"""Landing page — orients the user and links to the three tool pages."""
+"""Landing page — orients the user and links to the three tool pages and methodology guide."""
 
 import streamlit as st
 
@@ -51,16 +51,19 @@ with main_col:
     <div style="font-size:22px; font-weight:800; color:#0F294A; margin-bottom:10px;">
         About this tool
     </div>
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:10px;">
         This tool compares the lifetime cost of an air-to-water heat pump against a gas boiler.
-        <b>Set your own assumptions about household heat demand, the heat pump and gas boiler
-        themselves, energy prices, installation costs, financing and subsidy</b>, then explore the
-        results across three pages: a direct cost comparison, and two pages that solve for the
-        subsidy or the electricity price a heat pump would need to match a gas boiler.
+        Set your own assumptions about heat demand, the heat pump and boiler, energy prices,
+        installation costs, maintenance, financing and subsidy.
+    </div>
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
+        Then explore the results across three pages: a direct cost comparison, and two pages
+        that solve for the subsidy or the electricity price a heat pump would need to match a
+        gas boiler.
     </div>
     <div style="font-size:13px; color:#888; line-height:1.5; margin-bottom:32px;">
-        Each page has its own sidebar for setting these assumptions, so you'll need to set them
-        again if you switch pages.
+        Each page has its own sidebar for these assumptions, so you'll need to set them again
+        if you switch pages.
     </div>
     """,
         unsafe_allow_html=True,
@@ -86,7 +89,7 @@ with main_col:
             as a year-by-year cashflow.
         </div>
         <div style="font-size:13px; color:#666; line-height:1.5; margin-bottom:16px; padding-left:10px; border-left:2px solid #ddd;">
-            e.g. Is a heat pump installed in 2028 cheaper overall than a gas boiler, accounting for installation, running and
+            e.g. Is a heat pump installed in 2028 cheaper overall than a gas boiler, when accounting for installation, running and
             maintenance costs?
         </div>
     </div>
@@ -107,9 +110,8 @@ with main_col:
                     Subsidy solver
                 </div>
                 <div style="font-size:14px; color:#333; line-height:1.6; margin-bottom:16px;">
-                    For each installation year, work out the subsidy a heat pump would need to bring
-                    its annualised lifetime cost level with a gas boiler's - and see how that compares with the
-                    current subsidy scheme.
+                    For each installation year, determine the subsidy level needed for a heat pump to achieve total lifetime cost parity 
+                    with a gas boiler - and see how that compares with the current subsidy scheme.
                 </div>
                 <div style="font-size:13px; color:#666; line-height:1.5; margin-bottom:16px; padding-left:10px; border-left:2px solid #ddd;">
                     e.g. What would the subsidy need to be in 2032, for cost parity with gas boilers, if heat pump installation
@@ -131,9 +133,8 @@ with main_col:
                     Price ratio solver
                 </div>
                 <div style="font-size:14px; color:#333; line-height:1.6; margin-bottom:16px;">
-                    For each installation year, work out the electricity price cap rate a heat pump
-                    would need for its annualised lifetime cost to match a gas boiler's, holding the gas price and
-                    subsidy as you've set them.
+                    For each installation year, determine the break-even electricity price cap that brings a heat pump to annualised lifetime cost parity 
+                    with a gas boiler, holding gas prices and subsidies constant.
                 </div>
                 <div style="font-size:13px; color:#666; line-height:1.5; margin-bottom:16px; padding-left:10px; border-left:2px solid #ddd;">
                     e.g. How much cheaper would electricity need to be, relative to gas, to bring a heat pump installed today to cost parity?
@@ -159,10 +160,8 @@ with main_col:
                 Want to know more about the underlying calculations and numbers?
             </div>
             <div style="font-size:14px; color:#333; line-height:1.6;">
-                The guide and methodology page explains the assumptions behind these results,
-                where the default figures come from, how present value and discounting are
-                worked out, known limitations and caveats, and where to find the underlying
-                Python model's source code.
+                Find details on model assumptions, default parameters, present value and discounting calculations, caveats, and 
+                access to the open-source Python code on the methodology page.
             </div>
         </div>
     </div>
