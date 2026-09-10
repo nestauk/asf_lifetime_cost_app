@@ -1,4 +1,4 @@
-"""Shared callout and divider components used across multiple pages."""
+"""Shared callout and divider front end components used across multiple pages."""
 
 import streamlit as st
 

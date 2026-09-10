@@ -1,4 +1,4 @@
-"""Sidebar components: section headers and read-only 'locked' value displays."""
+"""Sidebar front-end components: section headers and read-only 'locked' value displays."""
 
 import streamlit as st
 
@@ -34,7 +34,7 @@ def render_sidebar_section_header(title: str, subtitle: str = "") -> None:
 
 
 def render_locked_value(label: str, value: str, caption: str = "") -> None:
-    """Render a read-only, greyed-out input box with a 'Locked' pill, matching the mockup."""
+    """Render a read-only, greyed-out input box with a 'Locked' pill.""
     st.markdown(
         f'<div style="font-size:14px; font-weight:600; color:#0F294A; margin-bottom:4px;">{label}</div>',
         unsafe_allow_html=True,

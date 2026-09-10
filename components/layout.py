@@ -1,4 +1,4 @@
-"""Pre-built components that are commonly used across all pages."""
+"""Pre-built front-end components that are commonly used across all pages."""
 
 import streamlit as st
 
