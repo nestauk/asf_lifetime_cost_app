@@ -167,20 +167,11 @@ def render_household_section() -> tuple[float, float]:
         value=BOILER_HEAT_DEMAND_DEFAULT,
         step=100,
         key=_gen_key("boiler_heat_demand_input"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "The household's heat demand before switching to a heat pump. Default: median for a "
-        "home fitting an 8-10 kW heat pump. Adjust for a larger, smaller, or "
-        "better/worse insulated home.</div>",
-        unsafe_allow_html=True,
+        help="The household's heat demand before switching to a heat pump. "
+        "Default: median for a home fitting an 8-10 kW heat pump. Adjust for a "
+        "larger, smaller, or better/worse insulated home.",
     )
 
-    st.markdown(
-        '<div style="font-size:14px; font-weight:700; color:#0F294A; margin-bottom:2px;">'
-        "Extra heat demand with a heat pump</div>",
-        unsafe_allow_html=True,
-    )
     heat_pump_heat_demand_uplift_pct = st.slider(
         label="Extra heat demand with a heat pump",
         min_value=int(ASHP_HEAT_DEMAND_UPLIFT_PCT_MIN),
@@ -188,15 +179,10 @@ def render_household_section() -> tuple[float, float]:
         value=int(ASHP_HEAT_DEMAND_UPLIFT_PCT_DEFAULT),
         step=1,
         format="%d%%",
-        label_visibility="collapsed",
         key=_gen_key("heat_pump_heat_demand_uplift"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Heat pumps run at lower flow temperatures for longer, which can raise total heat demand "
-        "compared with a gas boiler in the same home. Set this to 0 to assume no difference between "
-        "the two systems.</div>",
-        unsafe_allow_html=True,
+        help="Heat pumps run at lower flow temperatures for longer, which can raise "
+        "total heat demand compared with a gas boiler in the same home. Set this to "
+        "0 to assume no difference between the two systems.",
     )
     render_divider()
 
@@ -241,7 +227,7 @@ def _render_fuel_price_inputs(
     )
     st.markdown(
         '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        'Default: <a href="https://superset-asf.dap-tools.uk/superset/dashboard/asf-energy-bills/?standalone=true" '
+        'Default: <a href="https://www.ofgem.gov.uk/information-consumers/energy-advice-households/energy-price-cap-unit-rates-and-standing-charges" '
         'target="_blank" style="color:#888; text-decoration:underline;">latest Ofgem price cap rate</a>. Must be zero or positive. </div>',
         unsafe_allow_html=True,
     )
@@ -590,11 +576,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         step=0.1,
         format="%.1f",
         key=_gen_key("ashp_scop_slider"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Held constant across every installation year and throughout each system's lifetime.</div>",
-        unsafe_allow_html=True,
+        help="Held constant across every installation year and throughout each system's lifetime.",
     )
 
     tou_discount_pct = st.slider(
@@ -605,14 +587,9 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         step=1,
         format="%d%%",
         key=_gen_key("ashp_tou_discount_slider"),
+        help="The saving you assume a heat pump owner gets on their electricity unit rate with a time-of-use tariff. Set to 0 to use the standard price cap rate.",
     )
     tou_tariff_discount = tou_discount_pct / 100
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "The saving you assume a heat pump owner gets on their electricity unit rate with a "
-        "time-of-use tariff. Set to 0 to use the standard price cap rate.</div>",
-        unsafe_allow_html=True,
-    )
 
     installation_cost_current = st.number_input(
         "Installation cost today (£)",
@@ -621,11 +598,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         step=100.0,
         format="%.2f",
         key=_gen_key("ashp_current_installation_input"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        f"Default: Median installation cost for a {PROPERTY_DESCRIPTION}.</div>",
-        unsafe_allow_html=True,
+        help=f"Default: Median installation cost for a {PROPERTY_DESCRIPTION}.",
     )
 
     growth_mode_label = st.segmented_control(
@@ -679,12 +652,8 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
             options=subsidy_options,
             index=subsidy_options.index(ASHP_SUBSIDY_SCENARIO_DEFAULT),
             key=_gen_key("ashp_subsidy_pathway_select"),
-        )
-        st.markdown(
-            '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Today's value is £7,500 (Boiler Upgrade Scheme). Open <b>View/override subsidy by "
-            "year</b> below to see the full pathway or set your own values.</div>",
-            unsafe_allow_html=True,
+            help="Today's value is £7,500 (Boiler Upgrade Scheme). Expand 'View/override subsidy by "
+            "year' below to see the full pathway or set your own values.",
         )
         subsidy_scenario_values = get_subsidy_scenario_values(subsidy_scenario)
         subsidy_overrides = _render_subsidy_override(subsidy_scenario_values)
@@ -726,12 +695,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         value=ASHP_MAINTENANCE_COST_DEFAULT,
         step=10.0,
         key=_gen_key("ashp_maintenance_cost_input"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Assumes annual servicing, starting the year after installation (no maintenance cost in "
-        "the installation year itself).</div>",
-        unsafe_allow_html=True,
+        help="Assumes annual servicing, starting the year after installation (no maintenance cost in the installation year itself).",
     )
 
     return HeatPumpInputs(
@@ -776,12 +740,7 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         step=100.0,
         format="%.2f",
         key=_gen_key("boiler_installation_cost_input"),
-    )
-    st.markdown(
-        f'<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        f"Held at the value set above, in real terms ({BASE_YEAR_DEFAULT} £), for every installation "
-        f"year.</div>",
-        unsafe_allow_html=True,
+        help=f"Held at the value set above, in real terms ({BASE_YEAR_DEFAULT} £), for every installation year.",
     )
 
     efficiency = st.slider(
@@ -792,11 +751,7 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         step=0.01,
         format="%.2f",
         key=_gen_key("boiler_efficiency_slider"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Held constant across every installation year and throughout each system's lifetime.</div>",
-        unsafe_allow_html=True,
+        help="Held constant across every installation year and throughout each system's lifetime.",
     )
 
     maintenance_cost_per_visit = st.number_input(
@@ -806,34 +761,18 @@ def render_gas_boiler_section() -> GasBoilerInputs:
         step=10.0,
         format="%.2f",
         key=_gen_key("boiler_maintenance_cost_input"),
-    )
-    st.markdown(
-        '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-        "Assumes annual servicing, starting the year after installation (no maintenance cost in "
-        "the installation year itself).</div>",
-        unsafe_allow_html=True,
+        help="Assumes annual servicing, starting the year after installation (no maintenance cost in the installation year itself).",
     )
 
+    standing_charge = get_latest_gas_standing_charge()
     include_standing_charge = st.toggle(
         "Include gas standing charge",
         value=BOILER_INCLUDE_STANDING_CHARGE_DEFAULT,
         key=_gen_key("boiler_include_standing_charge_toggle"),
+        help=f"If included, held constant at {standing_charge:.2f} p/day (latest Ofgem price cap rate) in real terms ({BASE_YEAR_DEFAULT} £) "
+        "- this assumes gas heating is the household's only use of gas, so switching to a heat pump would let "
+        "it disconnect entirely. If excluded, this assumes the household keeps a gas connection anyway (e.g. for cooking).",
     )
-    standing_charge = get_latest_gas_standing_charge()
-    if include_standing_charge:
-        st.markdown(
-            f'<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            f"Included at {standing_charge:.2f} p/day, held constant in real terms ({BASE_YEAR_DEFAULT} £). "
-            f"Assumes gas heating is the household's only use of gas, so switching to a heat pump would "
-            f"let it disconnect entirely.</div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            '<div style="font-size:12px; color:#888; margin-top:-8px; margin-bottom:18px;">'
-            "Not included. Assumes the household keeps a gas connection anyway (e.g. for cooking).</div>",
-            unsafe_allow_html=True,
-        )
 
     return GasBoilerInputs(
         lifespan=lifespan,
@@ -873,7 +812,11 @@ def render_sidebar(
         ):
             st.session_state["reset_generation"] += 1
             for key in list(st.session_state.keys()):
-                if key not in ("reset_generation", "reset_all_defaults_button"):
+                if key not in (
+                    "reset_generation",
+                    "reset_all_defaults_button",
+                    "password_correct",
+                ):
                     del st.session_state[key]
             st.rerun()
 
