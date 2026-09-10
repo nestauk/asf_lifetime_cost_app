@@ -104,7 +104,7 @@ config/                             # Shared, model-independent configuration
 
 ## ❓ Troubleshooting
 
-**There's been changes to `asf-lifetime-cost-model` and I want to update the package that's installed**
+**To update `asf-lifetime-cost-model` after changes have been made:**
 
 Run:
 ```
