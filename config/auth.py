@@ -4,25 +4,28 @@ import streamlit as st
 
 
 def check_password() -> bool:
-    """Returns True if the user has entered the correct password."""
+    """Check whether the user has entered the correct password.
 
-    def password_entered():
-        if st.session_state["password"] == st.secrets["PASSWORD"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]
-        else:
-            st.session_state["password_correct"] = False
+    Displays a password input widget and checks whether the input
+    matches the `PASSWORD` value stored in Streamlit secrets.
 
-    if "password_correct" not in st.session_state:
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        return False
-    elif not st.session_state["password_correct"]:
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("Incorrect password")
-        return False
-    else:
+    Returns:
+        bool: True if the correct password has already been/now entered.
+            False, otherwise.
+    """
+
+    # Check whether password has already been validated
+    if st.session_state.get("password_correct", False):
         return True
+
+    # Render input widget
+    password = st.text_input("Password", type="password")
+    # Check entered password
+    if password:
+        if password == st.secrets["PASSWORD"]:
+            st.session_state["password_correct"] = True
+            st.rerun()  # immediately rerun to reveal app content
+        else:
+            st.error("Incorrect password")
+
+    return False
