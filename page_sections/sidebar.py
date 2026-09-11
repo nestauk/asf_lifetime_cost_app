@@ -118,7 +118,7 @@ def render_fixed_inputs() -> None:
 def render_user_inputs_heading() -> None:
     render_sidebar_section_header(
         "Your inputs",
-        "Set today's value and, where it matters, how each assumption changes in future years. "
+        "Set today's values and, how they change over time where relevant. "
         "Reset everything with the button at the bottom of the sidebar.",
     )
     render_divider()
@@ -593,10 +593,9 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
 
     installation_cost_current = st.number_input(
         "Installation cost today (£)",
-        min_value=0.0,
+        min_value=0,
         value=ASHP_INSTALLATION_COST_DEFAULT,
-        step=100.0,
-        format="%.2f",
+        step=100,
         key=_gen_key("ashp_current_installation_input"),
         help=f"Default: Median installation cost for a {PROPERTY_DESCRIPTION}.",
     )
@@ -691,9 +690,9 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
     # --- Maintenance ---
     hp_maintenance_cost_per_visit = st.number_input(
         "Maintenance cost (£)",
-        min_value=0.0,
+        min_value=0,
         value=ASHP_MAINTENANCE_COST_DEFAULT,
-        step=10.0,
+        step=10,
         key=_gen_key("ashp_maintenance_cost_input"),
         help="Assumes annual servicing, starting the year after installation (no maintenance cost in the installation year itself).",
     )
@@ -735,10 +734,9 @@ def render_gas_boiler_section() -> GasBoilerInputs:
 
     installation_cost = st.number_input(
         "Installation cost (£)",
-        min_value=0.0,
+        min_value=0,
         value=BOILER_INSTALLATION_COST_DEFAULT,
-        step=100.0,
-        format="%.2f",
+        step=100,
         key=_gen_key("boiler_installation_cost_input"),
         help=f"Held at the value set above, in real terms ({BASE_YEAR_DEFAULT} £), for every installation year.",
     )
@@ -756,10 +754,9 @@ def render_gas_boiler_section() -> GasBoilerInputs:
 
     maintenance_cost_per_visit = st.number_input(
         "Maintenance cost (£/yr)",
-        min_value=0.0,
+        min_value=0,
         value=BOILER_MAINTENANCE_COST_DEFAULT,
-        step=10.0,
-        format="%.2f",
+        step=10,
         key=_gen_key("boiler_maintenance_cost_input"),
         help="Assumes annual servicing, starting the year after installation (no maintenance cost in the installation year itself).",
     )
