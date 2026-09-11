@@ -8,6 +8,7 @@ import streamlit as st
 
 from components.layout import render_section_heading
 from config.defaults import (
+    BASE_YEAR_DEFAULT,
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
     OPERATING_END_YEAR,
@@ -276,7 +277,7 @@ def render_eac_breakdown_section(
     )
     st.markdown(
         '<div style="font-size:13px; color:#666; margin-bottom:12px;">'
-        "How much each system will cost the household in each year of ownership, in present-value (2026 real £) terms. "
+        f"How much each system will cost the household in each year of ownership, in present-value ({BASE_YEAR_DEFAULT} real £) terms. "
         "Includes upfront cost in year 0.</div>",
         unsafe_allow_html=True,
     )

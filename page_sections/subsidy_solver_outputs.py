@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from components.layout import render_section_heading
+from config.defaults import BASE_YEAR_DEFAULT
 from results.charts import build_required_subsidy_chart
 
 
@@ -66,7 +67,7 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         '<td style="padding:10px 16px;">Installation year</td>'
         '<td style="padding:10px 16px; text-align:right;">Gas boiler annualised lifetime cost, £/yr</td>'
         '<td style="padding:10px 16px; text-align:right;">Heat pump (no subsidy) annualised lifetime cost, £/yr</td>'
-        '<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ (2026 real)</td>'
+        f'<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ ({BASE_YEAR_DEFAULT} real)</td>'
         '<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ (nominal)</td>'
         '<td style="padding:10px 16px;">What this means</td>'
         "</tr>" + rows_html + "</table>"
@@ -86,10 +87,10 @@ def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) 
     required_subsidy_df_for_export = required_subsidy_df.copy().rename(
         columns={
             "installation_year": "Installation year",
-            "gas_boiler_eac": "Annualised lifetime cost of gas boiler, £/yr (2026 real)",
-            "heat_pump_no_subsidy_eac": "Annualised lifetime cost of heat pump, with no subsidy, £/yr (2026 real)",
-            "installation_cost": "Heat pump installation cost, £ (2026 real)",
-            "required_subsidy_real": "Heat pump subsidy needed for cost parity, £ (2026 real)",
+            "gas_boiler_eac": f"Annualised lifetime cost of gas boiler, £/yr ({BASE_YEAR_DEFAULT} real)",
+            "heat_pump_no_subsidy_eac": f"Annualised lifetime cost of heat pump, with no subsidy, £/yr ({BASE_YEAR_DEFAULT} real)",
+            "installation_cost": f"Heat pump installation cost, £ ({BASE_YEAR_DEFAULT} real)",
+            "required_subsidy_real": f"Heat pump subsidy needed for cost parity, £ ({BASE_YEAR_DEFAULT} real)",
             "required_subsidy_nominal": "Heat pump subsidy needed for cost parity, £ (nominal)",
         }
     )

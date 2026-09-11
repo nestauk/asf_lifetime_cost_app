@@ -5,9 +5,24 @@ import streamlit as st
 from components.callouts import render_callout, render_page_context_callout
 from components.layout import render_page_title, render_section_heading
 from config.defaults import (
+    ASHP_HEAT_DEMAND_UPLIFT_PCT_DEFAULT,
+    ASHP_INSTALLATION_COST_DEFAULT,
+    ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT,
+    ASHP_LIFESPAN_DEFAULT,
+    ASHP_MAINTENANCE_COST_DEFAULT,
+    ASHP_SCOP_DEFAULT,
+    ASHP_TOTAL_HEAT_DEMAND_DEFAULT,
+    ASHP_TOU_DISCOUNT_DEFAULT,
     BASE_YEAR_DEFAULT,
+    BOILER_EFFICIENCY_DEFAULT,
+    BOILER_INCLUDE_STANDING_CHARGE_DEFAULT,
+    BOILER_INSTALLATION_COST_DEFAULT,
+    BOILER_LIFESPAN_DEFAULT,
+    BOILER_MAINTENANCE_COST_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
     INFLATION_RATE_DEFAULT,
+    INSTALL_END_YEAR,
+    INSTALL_START_YEAR,
 )
 
 render_page_title(
@@ -66,25 +81,24 @@ input_rows = [
     (
         "Fixed",
         "Installation year range",
-        "2026 - 2035",
-        "The range of years a system can be installed in, across every chart and table in this tool (2026-2035).",
+        f"{INSTALL_START_YEAR} - {INSTALL_END_YEAR}",
+        "The range of years a system can be installed in, across every chart and table in this tool.",
     ),
     (
         "Household",
         "Heat demand met by the gas boiler",
-        "16,823 kWh/yr",  # Update as our views on typical heat demand change
+        f"{ASHP_TOTAL_HEAT_DEMAND_DEFAULT:,.0f} kWh/yr",
         "The property's baseline heat need (space heat + hot water) met by a gas boiler, before "
         "switching to a heat pump. Used to calculate the gas boiler's running cost. Default value "
         "matches the median heat demand for a home installing an 8-10 kW air-to-water heat pump in "
-        "the 2025/26 financial year <span style='color:red;'>(TO BE CONFIRMED, MIGHT BE REPLACED WITH NON-MCS SOURCED VALUE "
-        "- Source: Nesta analysis of MCS installations data)</span>, since the "
+        "the 2025/26 financial year <span style='color:red;'>(TODO UPDATE MCS DATA SOURCE)</span>, since the "
         "heat pump uplift defaults to 0% — at any other uplift setting, this figure would be lower "
         "than the heat pump's own demand.",
     ),
     (
         "Household",
         "Extra heat demand with a heat pump",
-        "0%",
+        f"{ASHP_HEAT_DEMAND_UPLIFT_PCT_DEFAULT}%",
         "Applied on top of the gas boiler baseline to get the heat pump's heat demand. Default assumes "
         "no difference between the two systems",
     ),
@@ -92,20 +106,20 @@ input_rows = [
         "Energy prices",
         "Gas / electricity unit price today",
         "Latest price cap unit rate p/kWh",
-        "The starting point for each fuel's price trajectory (2026). This is the final retail price (Direct Debit, GB average), including "
+        f"The starting point for each fuel's price trajectory ({BASE_YEAR_DEFAULT}). This is the final retail price (Direct Debit, GB average), including "
         "VAT where applied (Note: VAT has been removed from electricity bills from Oct 26 - Mar 27). Feeds directly into "
         "running cost for both systems.",
     ),
     (
         "Heat pump",
         "Lifespan",
-        "15 years",
+        f"{ASHP_LIFESPAN_DEFAULT} years",
         "How many years the system operates for. Determines the annualisation period for calculating the Equivalent Annual Cost (EAC) and how many years of running/maintenance cost are summed.",
     ),
     (
         "Heat pump",
         "SCOP",
-        "3.0",
+        f"{ASHP_SCOP_DEFAULT}",
         "Seasonal Coefficient of Performance - how much heat is produced per unit of electricity used. "
         "Directly divides down the electricity demand needed to meet the heat demand, so it scales "
         "running cost.",
@@ -113,22 +127,22 @@ input_rows = [
     (
         "Heat pump",
         "Time-of-use tariff discount",
-        "0%",
+        f"{ASHP_TOU_DISCOUNT_DEFAULT}%",
         "The saving assumed on the electricity unit rate for a time-of-use tariff. Reduces the effective electricity price used in the heat pump's running cost only. "
         "Default assumes no time-of-use tariff discount, so the standard price cap rate applies.",
     ),
     (
         "Heat pump",
         "Installation cost today",
-        "£12,500",
+        f"£{ASHP_INSTALLATION_COST_DEFAULT:,.0f}",
         "The installation cost before any subsidy. Feeds into capital cost, and (if financed) the size of loan repayments. Default value "
         "is the median cost for a home installing an 8-10 kW air-to-water heat pump in "
-        "the 2025/26 financial year (Source: Nesta analysis of MCS installations data)",
+        "the 2025/26 financial year <span style='color:red;'>(TODO UPDATE MCS DATA SOURCE)</span>",
     ),
     (
         "Heat pump",
         "Installation cost trend",
-        "-2.5% / yr",
+        f"{ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT * 100}% / yr",
         "How installation cost is assumed to change for later installation years. Options are "
         "<b>Flat</b> (held at today's value) or <b>% change per year</b>. Changes the capital cost "
         "for systems installed later in the 2026–2035 range. Default value is based on Nesta's "
@@ -156,40 +170,40 @@ input_rows = [
     (
         "Heat pump",
         "Maintenance cost",
-        "£80 / yr",
+        f"£{ASHP_MAINTENANCE_COST_DEFAULT} / yr",
         "A fixed annual cost. Adds directly to the maintenance "
         "cost component of the heat pump's lifetime cost.",
     ),
     (
         "Gas boiler",
         "Lifespan",
-        "15 years",
+        f"{BOILER_LIFESPAN_DEFAULT} years",
         "Same role as heat pump lifespan, for the gas boiler's own lifetime cost calculation.",
     ),
     (
         "Gas boiler",
         "Efficiency",
-        "0.85",
+        f"{BOILER_EFFICIENCY_DEFAULT}",
         "How much of the gas burned converts to usable heat. Scales gas demand needed to meet the heat demand, so it scales running cost.",
     ),
     (
         "Gas boiler",
         "Installation cost",
-        "£3,000",
+        f"£{BOILER_INSTALLATION_COST_DEFAULT:,.0f}",
         "The upfront capital cost. No subsidy or financing option - always paid upfront.",
     ),
     (
         "Gas boiler",
         "Maintenance cost",
-        "£80 / yr",
+        f"£{BOILER_MAINTENANCE_COST_DEFAULT} / yr",
         "A fixed annual cost. Adds directly to the maintenance "
         "cost component of the gas boiler's lifetime cost.",
     ),
     (
         "Gas boiler",
         "Include gas standing charge",
-        "Excluded",
-        "Default assumes the household would keep a gas connection anyway (e.g. for cooking), so "
+        f"{'Included' if BOILER_INCLUDE_STANDING_CHARGE_DEFAULT else 'Excluded'}",
+        "Excluding signifies that the household would keep a gas connection anyway (e.g. for cooking), so "
         "the standing charge isn't a genuine consequence of the heating choice and is excluded from "
         "running cost. If included instead, it reflects a household that could fully disconnect from "
         "gas if it switched to a heat pump (no other gas appliances) - using the latest Ofgem price "
