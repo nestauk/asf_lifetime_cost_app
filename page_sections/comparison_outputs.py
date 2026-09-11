@@ -51,21 +51,28 @@ def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
         subsidy_saving = m["subsidy_saving"]
 
         if saving >= 0:
-            title = f"Heat pump saving · installed {year}"
+            title = "Heat pump costs less than gas boiler"
             value_text = f"£{saving:,.0f}/yr"
             value_color = "#18A48C"
-            arrow = "&#9660;"  # ▼ cost is lower, good
+            arrow = "&#9660;"  # ▼ cost is lower
             pct_sign = "-"
+            card_bg = "#EAF6F5"
+            card_border = "#18A48C"
         else:
-            title = f"Heat pump costs more · installed {year}"
+            title = "Heat pump costs more than gas boiler"
             value_text = f"£{abs(saving):,.0f}/yr"
             value_color = "#EB003B"
             arrow = "&#9650;"  # ▲ cost is higher
             pct_sign = "+"
+            card_bg = "#FDEFF1"
+            card_border = "#EB003B"
+
+        subtitle = f"Both systems installed in {year}"
 
         return f"""
-        <div style="background:#EAF6F5; border-left: 4px solid #18A48C;border-radius:4px; padding:16px;">
+        <div style="background:{card_bg}; border-left: 4px solid {card_border};border-radius:4px; padding:16px;">
             <div style="font-size:14px; font-weight:600; color:#0F294A; margin-bottom:2px;">{title}</div>
+            <div style="font-size:12px; color:#888; margin-bottom:8px;">{subtitle}</div>
             <div style="font-size:20px; font-weight:600; color:{value_color};">{value_text} <span style="font-size:14px;">{arrow}</span><span style="color:{value_color}; font-size:14px;font-weight:500;">
                 {pct_sign}{abs(saving_pct):.0f}%</span></div>
             <div style="font-size:12px; color:#666; margin-top:4px;">
