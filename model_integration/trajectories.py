@@ -6,6 +6,7 @@ here at all — these are pure functions, testable with a hand-built
 AppInputs and no running app.
 """
 
+import pandas as pd
 import streamlit as st
 from asf_lifetime_cost_model.getters import data_getters as model_data_getters
 from asf_lifetime_cost_model.models.trajectory import (
@@ -70,7 +71,11 @@ def build_boiler_installation_costs(inputs: AppInputs) -> InstallationCostTrajec
     )
 
 
-@st.cache_data(ttl=3600)  # keep cached result for up to an hour
+@st.cache_data()
+def _get_ashp_subsidy_options_data() -> pd.DataFrame:
+    return model_data_getters.get_ashp_subsidy_options_data()
+
+
 def get_subsidy_scenario_values(subsidy_scenario: str) -> dict[int, float]:
     """Look up a named ASHP subsidy scenario's £ values for every installation year.
 
@@ -78,7 +83,7 @@ def get_subsidy_scenario_values(subsidy_scenario: str) -> dict[int, float]:
     no model objects involved) and inside build_ashp_subsidies (to actually
     construct the real SubsidyTrajectory).
     """
-    subsidy_df = model_data_getters.get_ashp_subsidy_options_data()
+    subsidy_df = _get_ashp_subsidy_options_data()
     scenario_row = (
         subsidy_df[subsidy_df["model"].str.lower() == subsidy_scenario.lower()]
         .drop(columns="model")
@@ -91,12 +96,11 @@ def get_subsidy_scenario_values(subsidy_scenario: str) -> dict[int, float]:
     }
 
 
-@st.cache_data(ttl=3600)
 def get_subsidy_scenario_options() -> list[str]:
     """List every named ASHP subsidy scenario available in the underlying data,
     nicely capitalised for display in the sidebar dropdown.
     """
-    subsidy_df = model_data_getters.get_ashp_subsidy_options_data()
+    subsidy_df = _get_ashp_subsidy_options_data()
     raw_names = sorted(subsidy_df["model"].dropna().unique().tolist())
     return [name.capitalize() for name in raw_names]
 
