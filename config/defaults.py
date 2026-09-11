@@ -112,7 +112,7 @@ ASHP_TOU_DISCOUNT_MAX = 0.50
 # Median installation cost for homes fitting an 8-10 kW A2W heat pump in FY 2025/26
 # Source: analysis of MCS data `raw_historical_mcs_installations_20260705.csv`
 # TODO: Link to final analysis notebook in asf_lifetime_cost_model
-ASHP_INSTALLATION_COST_DEFAULT = 12_500.0  # £
+ASHP_INSTALLATION_COST_DEFAULT = 12_500  # £
 
 # Rate of change of installation cost in future years
 # (fraction, where -0.025 is -2.5% per year)
@@ -136,7 +136,7 @@ ASHP_LOAN_TERM_MIN = 5
 ASHP_LOAN_TERM_MAX = 20
 
 # Cost of maintenance / servicing
-ASHP_MAINTENANCE_COST_DEFAULT = 80.0  # £
+ASHP_MAINTENANCE_COST_DEFAULT = 80  # £
 ASHP_MAINTENANCE_FREQUENCY_DEFAULT = 1.0  # times/year
 
 # ---------------------------------------------------------------------------
@@ -146,14 +146,14 @@ BOILER_LIFESPAN_DEFAULT = 15  # years
 BOILER_LIFESPAN_MIN = 15
 BOILER_LIFESPAN_MAX = 20
 
-BOILER_INSTALLATION_COST_DEFAULT = 3_000.0  # £
+BOILER_INSTALLATION_COST_DEFAULT = 3_000  # £
 
 BOILER_EFFICIENCY_DEFAULT = 0.85  # fraction where 0.85 is 85%
 BOILER_EFFICIENCY_MIN = 0.70
 BOILER_EFFICIENCY_MAX = 1.0
 
 # Cost of maintenance / servicing
-BOILER_MAINTENANCE_COST_DEFAULT = 80.0  # £
+BOILER_MAINTENANCE_COST_DEFAULT = 80  # £
 BOILER_MAINTENANCE_FREQUENCY_DEFAULT = 1.0  # times/year
 
 # Whether gas standing charge should be included in gas boiler running costs
