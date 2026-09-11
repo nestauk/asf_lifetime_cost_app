@@ -30,9 +30,12 @@ nesta_asf_logo = Image.open(f"{current_dir}/images/nesta_asf_stacked_logo.png")
 #  Sidebar
 # ---------------------------------------------------------------------------
 with st.sidebar:
+    # solve_for_electricity=True disables the electricity price widgets in the
+    # sidebar (since this page solves for that value, rather than letting the
+    # user set it) — user_inputs.energy_prices.electricity_current_price,
+    # growth_mode, growth_rate, and overrides will be None/None/None/{}
+    # as a result. See render_energy_prices_section for the actual logic.
     user_inputs = render_sidebar(solve_for_electricity=True)
-    # For electricity
-    # current_price=None, growth_mode=None, growth_rate=None, overrides={}
 
 
 # ---------------------------------------------------------------------------
