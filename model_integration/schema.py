@@ -27,7 +27,7 @@ from config.defaults import (
 )
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HeatPumpInputs:
     """Configured inputs for an air-to-water heat pump."""
 
@@ -50,7 +50,7 @@ class HeatPumpInputs:
     maintenance_annual_frequency: float = ASHP_MAINTENANCE_FREQUENCY_DEFAULT
 
 
-@dataclass
+@dataclass(kw_only=True)
 class GasBoilerInputs:
     """Configured inputs for a gas boiler."""
 
@@ -63,7 +63,7 @@ class GasBoilerInputs:
     standing_charge: float = field(default_factory=get_latest_gas_standing_charge)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EnergyPriceInputs:
     """Configured inputs for gas and electricity prices."""
 
@@ -80,7 +80,7 @@ class EnergyPriceInputs:
     electricity_overrides: dict[int, float] = field(default_factory=dict)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AppInputs:
     """All inputs collected from the sidebar, in one object.
 
