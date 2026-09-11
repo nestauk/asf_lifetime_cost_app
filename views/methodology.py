@@ -50,7 +50,7 @@ render_section_heading("Understanding the sidebar and each input")
 st.markdown(
     """
     <div style="font-size:14px; color:#333; line-height:1.7; margin-bottom:16px;">
-    Use the sidebar on each page to set your <b>inputs</b>. Default settings are our standard ASF assumptions.
+    Use the sidebar on each page to set your <b>inputs</b>. Default settings are our standard Nesta assumptions.
     The table below explains what each input means and which calculation it feeds into.
     </div>
     """,
@@ -69,7 +69,10 @@ input_rows = [
         "Fixed",
         "Inflation rate",
         f"{INFLATION_RATE_DEFAULT:.1%}",
-        "Used to convert nominal (actual cash) figures into real terms, and vice versa. Set at the Bank of England's CPI target.",
+        "Used to convert nominal (actual cash) figures into real terms, and vice versa. Set at the "
+        '<a href="https://www.bankofengland.co.uk/monetary-policy/inflation" target="_blank" '
+        'style="color:#0F294A; font-weight:700; text-decoration:underline;">Bank of England\'s '
+        "CPI target</a>.",
     ),
     (
         "Fixed",
@@ -142,11 +145,14 @@ input_rows = [
     (
         "Heat pump",
         "Installation cost trend",
-        f"{ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT * 100}% / yr",
-        "How installation cost is assumed to change for later installation years. Options are "
-        "<b>Flat</b> (held at today's value) or <b>% change per year</b>. Changes the capital cost "
-        "for systems installed later in the 2026–2035 range. Default value is based on Nesta's "
-        "analysis of historical Boiler Upgrade Scheme statistics.",
+        f"{ASHP_INSTALLATION_COST_GROWTH_RATE_DEFAULT:+.1%} / yr",
+        f"How installation cost is assumed to change for later installation years. Options are "
+        f"<b>Flat</b> (held at today's value) or <b>% change per year</b>. Changes the capital cost "
+        f"for systems installed later in the {INSTALL_START_YEAR}–{INSTALL_END_YEAR} range. Default value is based on the "
+        f"historical trend in the costs reported in the "
+        f'<a href="https://www.gov.uk/government/collections/boiler-upgrade-scheme-statistics" '
+        f'target="_blank" style="color:#0F294A; text-decoration:underline;">Boiler '
+        f"Upgrade Scheme statistics</a>.",
     ),
     (
         "Heat pump",
@@ -183,8 +189,9 @@ input_rows = [
     (
         "Gas boiler",
         "Efficiency",
-        f"{BOILER_EFFICIENCY_DEFAULT}",
-        "How much of the gas burned converts to usable heat. Scales gas demand needed to meet the heat demand, so it scales running cost.",
+        f"{BOILER_EFFICIENCY_DEFAULT:.0%}",
+        "How much of the gas burned converts to usable heat. A lower efficiency means more gas is "
+        "needed to produce the same amount of heat, which increases running cost.",
     ),
     (
         "Gas boiler",
@@ -206,8 +213,11 @@ input_rows = [
         "Excluding signifies that the household would keep a gas connection anyway (e.g. for cooking), so "
         "the standing charge isn't a genuine consequence of the heating choice and is excluded from "
         "running cost. If included instead, it reflects a household that could fully disconnect from "
-        "gas if it switched to a heat pump (no other gas appliances) - using the latest Ofgem price "
-        "cap standing charge, held constant across the system's lifespan and every installation year.",
+        "gas if it switched to a heat pump (no other gas appliances) — using the latest "
+        '<a href="https://www.ofgem.gov.uk/information-consumers/energy-advice-households/energy-price-cap-unit-rates-and-standing-charges" '
+        'target="_blank" style="color:#0F294A; text-decoration:underline;">Ofgem '
+        "price cap standing charge</a>, held constant across the system's lifespan and every "
+        "installation year.",
     ),
 ]
 
@@ -224,7 +234,7 @@ rows_html = "".join(
     f'<td style="padding:8px 12px; font-weight:700; color:#0F294A; white-space:nowrap; '
     f'border-left:4px solid {SECTION_COLORS.get(category, "#DDD")};">{category}</td>'
     f'<td style="padding:8px 12px; white-space:nowrap;">{input_name}</td>'
-    f'<td style="padding:8px 12px; text-align:center; white-space:nowrap;">{default}</td>'
+    f'<td style="padding:8px 12px; text-align:center;">{default}</td>'
     f'<td style="padding:8px 12px; color:#444;">{meaning}</td>'
     f"</tr>"
     for category, input_name, default, meaning in input_rows
@@ -237,7 +247,7 @@ st.markdown(
             <tr style="background:#DDD9D6; font-weight:700; color:#0F294A;">
                 <td style="padding:8px 12px; border-left:4px solid #000;">Section</td>
                 <td style="padding:8px 12px;">Input</td>
-                <td style="padding:8px 12px;">Default</td>
+                <td style="padding:8px 12px;text-align:center;">Default</td>
                 <td style="padding:8px 12px;">What it means / what it affects</td>
             </tr>
             {rows_html}
@@ -260,7 +270,10 @@ st.markdown(
     solvers) are performed by
     <a href="https://github.com/nestauk/asf_lifetime_cost_model" target="_blank"
     style="color:#0F294A; font-weight:700; text-decoration:underline;">asf_lifetime_cost_model</a>,
-    an open Python package built and maintained by ASF, separate from this Streamlit app.
+    an open Python package built and maintained by Nesta's
+    <a href="https://www.nesta.org.uk/sustainable-future/" target="_blank"
+    style="color:#0F294A; font-weight:700; text-decoration:underline;">A Sustainable Future team</a>,
+    separate from this Streamlit app.
     </div>
     """,
     unsafe_allow_html=True,
