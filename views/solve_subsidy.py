@@ -26,6 +26,7 @@ nesta_asf_logo = Image.open(f"{current_dir}/images/nesta_asf_stacked_logo.png")
 # ---------------------------------------------------------------------------
 with st.sidebar:
     user_inputs = render_sidebar(solve_for_subsidy=True)
+    # When solve_for_subsidy=True, the following are set:
     # subsidy_scenario = None
     # subsidy_overrides: dict[int, float] = {}
 

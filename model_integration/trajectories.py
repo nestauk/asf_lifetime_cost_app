@@ -86,7 +86,9 @@ def get_subsidy_scenario_values(subsidy_scenario: str) -> dict[int, float]:
     subsidy_df = _get_ashp_subsidy_options_data()
     scenario_row = (
         subsidy_df[subsidy_df["model"].str.lower() == subsidy_scenario.lower()]
-        .drop(columns="model")
+        .drop(
+            columns="model"
+        )  # keeps year and value columns only, as only one scenario selected
         .iloc[0]
     )
     return {
@@ -110,6 +112,9 @@ def build_ashp_subsidies(inputs: AppInputs) -> SubsidyTrajectory:
     hp = inputs.heat_pump
 
     if hp.subsidy_scenario is None:
+        # hp.subsidy_scenario is None only on the Solve for Subsidy page where
+        # the subsidy dropdown is disabled (solve_for_subsidy=True).
+        # Since subsidy is solved for, a safe placeholder trajectory at flat zero is built
         trajectory = SubsidyTrajectory(
             "air_to_water_heat_pump",
             starting_subsidy=0.0,
@@ -134,7 +139,10 @@ def build_ashp_subsidies(inputs: AppInputs) -> SubsidyTrajectory:
         # since `trajectory` needs to be in real terms
         overrides_real = {
             year: deflate_to_real(
-                value, year, BASE_YEAR_DEFAULT, INFLATION_RATE_DEFAULT
+                nominal_value=value,
+                year=year,
+                base_year=BASE_YEAR_DEFAULT,
+                inflation_rate=INFLATION_RATE_DEFAULT,
             )
             for year, value in hp.subsidy_overrides.items()
         }
@@ -162,11 +170,15 @@ def build_gas_prices(inputs: AppInputs) -> EnergyPriceTrajectory:
     )
 
     if prices.gas_growth_mode == "flat":
-        pass
+        pass  # starting_price is already flat across every year
     elif prices.gas_growth_mode == "annual_pct":
-        trajectory.set_trajectory(prices.gas_growth_rate, from_year=BASE_YEAR + 1)
+        trajectory.set_trajectory(
+            prices.gas_growth_rate, from_year=BASE_YEAR + 1
+        )  # apply a constant % change each year, starting the year after base_year
     elif prices.gas_growth_mode == "custom":
-        trajectory.set_trajectory(prices.gas_overrides)
+        trajectory.set_trajectory(
+            prices.gas_overrides
+        )  # override with user-specified year-by-year values
     else:
         raise ValueError(f"Unknown gas_growth_mode {prices.gas_growth_mode!r}")
 
@@ -176,15 +188,26 @@ def build_gas_prices(inputs: AppInputs) -> EnergyPriceTrajectory:
 def build_electricity_prices(inputs: AppInputs) -> EnergyPriceTrajectory:
     """Build the (headline, pre-ToU-discount) electricity price trajectory from user inputs.
 
-    If electricity_current_price is None (on the electricity-price-solver
-    page, where the price cap rate is being solved for), returns a flat
-    trajectory seeded at the latest price cap rate as a safe baseline —
-    the actual value used at construction time doesn't affect
-    solve_electricity_price_for_parity's result.
+    electricity_current_price is None only on the Solve for Electricity
+    Price page, where the electricity price input is disabled since the
+    price itself is what's being solved for, not a user input.
+
+    In that case, this function returns a flat trajectory seeded at the
+    latest live price cap rate, purely as a safe placeholder. This
+    placeholder value has no effect on the actual solved answer:
+    solve_electricity_price_for_parity works out the correct required price
+    algebraically, regardless of what value this trajectory started from.
+
+    On every other page, electricity_current_price is always a real number
+    set by the user (or a live-fetched default), and the function builds
+    the trajectory from that instead.
     """
     prices = inputs.energy_prices
 
     if prices.electricity_current_price is None:
+        # prices.electricity_current_price is None only on the Solve for price ratio page
+        # where electricity price user input is disabled
+        # Since electricity prices are solved for, a safe placeholder trajectory (flat at price cap) is built
         starting_price = model_data_getters.get_latest_price_cap_rate("electricity")
         return EnergyPriceTrajectory(
             "electricity",
