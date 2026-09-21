@@ -83,8 +83,8 @@ def build_gas_boiler_for_year(
 
 def build_systems_for_year(
     inputs: AppInputs, installation_year: int
-) -> tuple[HeatingSystem, HeatingSystem, HeatingSystem, HeatingSystem]:
-    """Build all four HeatingSystem variants for a given installation year.
+) -> tuple[HeatingSystem, HeatingSystem, HeatingSystem]:
+    """Build all three HeatingSystem variants for a given installation year.
 
     Returns (heat_pump, heat_pump_no_subsidy, gas_boiler) for
     results/compute.py to unpack.
