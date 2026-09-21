@@ -13,6 +13,9 @@ is self-contained (opened and closed within the same block) to avoid the
 "forgot to close a div" bugs from earlier iterations.
 """
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import streamlit as st
 
 from config.defaults import (
@@ -29,6 +32,8 @@ TEAL = "#18A48C"
 BLUE = "#0000FF"
 PURPLE = "#9A1BBE"
 PINK = "#F6A4B7"
+
+timestamp = datetime.now(ZoneInfo("Europe/London")).strftime("%Y%m%d_%H%M")
 
 
 def _card_open(border_color: str = NAVY, extra_style: str = "") -> str:
@@ -178,7 +183,7 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
                 ("Installation", f"£{gb.installation_cost:,.0f}, flat in real terms"),
                 (
                     "Maintenance",
-                    f"£{hp.maintenance_cost_per_visit:,.0f} per service, {hp.maintenance_annual_frequency:.1f} times a year",
+                    f"£{gb.maintenance_cost_per_visit:,.0f} per service, {gb.maintenance_annual_frequency:.1f} times a year",
                 ),
                 ("Standing charge", standing_charge_line),
             ]
@@ -250,7 +255,7 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
     st.download_button(
         label="⬇ Download these assumptions",
         data=_build_assumptions_text(inputs),
-        file_name="assumptions.txt",
+        file_name=f"{timestamp}_assumptions_nesta_lifetime_cost_model.txt",
         mime="text/plain",
     )
 
