@@ -38,9 +38,14 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         required_subsidy_nominal = row["required_subsidy_nominal"]
         installation_cost = row["installation_cost"]
 
-        row_bg = ""
+        row_bg = ""  # row background
         message = ""
         if required_subsidy_real < 0:
+            # Negative required subsidy means the heat pump is already cheaper
+            # than the gas boiler with zero subsidy, and solver algebra returns a
+            # negative value because it's solving for the subsidy that makes the
+            # two exactly equal, and here the heat pump would need to be made
+            # more expensive (via a negative subsidy) to reach that point
             row_bg = "background:#B7E4D8;"
             message = "Already cheaper — no subsidy needed"
         elif required_subsidy_real > installation_cost:
