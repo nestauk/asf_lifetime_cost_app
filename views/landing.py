@@ -52,7 +52,7 @@ with main_col:
         About this tool
     </div>
     <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:10px;">
-        This tool compares the lifetime cost of an air-to-water heat pump against a gas boiler.
+        This tool compares the lifetime cost of an <b>air-to-water heat pump</b> against a <b>gas boiler</b>.
         Set your own assumptions about heat demand, the heat pump and boiler, energy prices,
         installation costs, maintenance, financing and subsidy.
     </div>

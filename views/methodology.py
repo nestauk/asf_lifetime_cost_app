@@ -35,12 +35,14 @@ render_page_title(
 # What this tool does
 # ---------------------------------------------------------------------------
 render_page_context_callout(
-    "This tool compares the lifetime cost of an air-to-water heat pump against a gas boiler, "
+    "This tool compares the lifetime cost of an <b>air-to-water heat pump</b> against a <b>gas boiler</b>, "
     "for a household installing in any year from 2026 to 2035. There are three pages:<br><br>"
     "&bull; <b>Lifetime cost comparison</b> - compares both systems given your assumptions<br>"
     "&bull; <b>Solve for subsidy</b> - what subsidy would make a heat pump as cheap as a gas boiler<br>"
     "&bull; <b>Solve for electricity-gas price ratio</b> - what electricity-to-gas price ratio would "
-    "make a heat pump as cheap as a gas boiler"
+    "make a heat pump as cheap as a gas boiler<br><br>"
+    "<span style='color:#666;'>Note: throughout this tool, references to a "
+    "&quot;heat pump&quot; refer specifically to an air-to-water heat pump.</span>"
 )
 
 # ---------------------------------------------------------------------------
