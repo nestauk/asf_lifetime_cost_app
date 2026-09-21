@@ -44,7 +44,8 @@ def render_required_price_ratio_section(
     }
 
     required_price_ratio = build_required_price_ratio(
-        required_price_cap_rates, gas_prices_by_year
+        required_price_cap_rates=required_price_cap_rates,
+        gas_prices_by_year=gas_prices_by_year,
     )
 
     chart = build_required_price_ratio_chart(required_price_ratio, current_ratio)
