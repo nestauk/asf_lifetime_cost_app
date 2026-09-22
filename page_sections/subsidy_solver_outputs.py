@@ -7,7 +7,10 @@ import pandas as pd
 import streamlit as st
 
 from components.layout import render_section_heading
+from components.results_export import create_excel_content_with_licence
 from config.defaults import BASE_YEAR_DEFAULT
+from model_integration.schema import AppInputs
+from page_sections.assumptions_summary import build_assumptions_text
 from results.charts import build_required_subsidy_chart
 
 
@@ -74,7 +77,7 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
         '<td style="padding:10px 16px; text-align:right;">Heat pump (no subsidy) annualised lifetime cost, £/yr</td>'
         f'<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ ({BASE_YEAR_DEFAULT} real)</td>'
         '<td style="padding:10px 16px; text-align:right;">Subsidy needed, £ (nominal)</td>'
-        '<td style="padding:10px 16px;">What this means</td>'
+        '<td style="padding:10px 16px;"> What this means</td>'
         "</tr>" + rows_html + "</table>"
         "</div>"
         '<div style="margin-top:12px; font-size:13px; display:flex; gap:20px;">'
@@ -86,7 +89,9 @@ def render_required_subsidy_table_section(required_subsidy_df: pd.DataFrame) -> 
     st.markdown(table_html, unsafe_allow_html=True)
 
 
-def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) -> None:
+def render_download_required_subsidy_section(
+    inputs: AppInputs, required_subsidy_df: pd.DataFrame
+) -> None:
 
     # Prepare dataframe for export
     required_subsidy_df_for_export = required_subsidy_df.copy().rename(
@@ -103,9 +108,13 @@ def render_download_required_subsidy_section(required_subsidy_df: pd.DataFrame) 
     timestamp = datetime.now(ZoneInfo("Europe/London")).strftime("%Y%m%d_%H%M")
 
     st.download_button(
-        "⬇ Export CSV",
-        data=required_subsidy_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-        file_name=f"required_subsidy_by_installation_year_{timestamp}.csv",
-        mime="text/csv",
-        key="download_required_subsidy_by_installation_year",
+        "⬇ Export results",
+        data=create_excel_content_with_licence(
+            inputs=inputs,
+            assumptions_text=build_assumptions_text(inputs),
+            df_for_export=required_subsidy_df_for_export,
+            results_sheet_name="Required subsidy by year",
+        ),
+        file_name=f"required_subsidy_by_installation_year_{timestamp}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )

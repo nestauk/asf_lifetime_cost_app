@@ -40,16 +40,18 @@ comparison_df = build_comparison_df(user_inputs)
 annual_breakdown_df = build_annual_breakdown_df(user_inputs)
 
 # --- Output #1 ---#
-render_eac_by_year_section(comparison_df=comparison_df)
+render_eac_by_year_section(inputs=user_inputs, comparison_df=comparison_df)
 
 # --- Output #2 ---#
 render_eac_breakdown_section(
-    comparison_df=comparison_df, annual_breakdown_df=annual_breakdown_df
+    inputs=user_inputs,
+    comparison_df=comparison_df,
+    annual_breakdown_df=annual_breakdown_df,
 )
 
 # --- Price ratio table --- #
-render_price_ratio_table(user_inputs)
+render_price_ratio_table(inputs=user_inputs)
 
 # ---Assumptions table ---#
 render_section_heading(" ")
-render_assumptions_summary(user_inputs)
+render_assumptions_summary(inputs=user_inputs)

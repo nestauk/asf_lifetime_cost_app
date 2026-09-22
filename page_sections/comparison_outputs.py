@@ -7,6 +7,9 @@ import pandas as pd
 import streamlit as st
 
 from components.layout import render_section_heading
+from components.results_export import (
+    create_excel_content_with_licence,
+)
 from config.defaults import (
     BASE_YEAR_DEFAULT,
     INSTALL_END_YEAR,
@@ -19,6 +22,7 @@ from model_integration.trajectories import (
     build_electricity_prices,
     build_gas_prices,
 )
+from page_sections.assumptions_summary import build_assumptions_text
 from results.charts import (
     COMPONENT_COLORS,
     COMPONENT_LABELS,
@@ -91,7 +95,7 @@ def render_eac_headline_metrics(metrics: dict[str, dict]) -> None:
         st.markdown(_card_html(metrics["last_year"]), unsafe_allow_html=True)
 
 
-def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
+def render_eac_by_year_section(inputs: AppInputs, comparison_df: pd.DataFrame) -> None:
 
     eac_df = comparison_df[comparison_df["metric"] == EAC_METRIC].copy()
     eac_df["system_label"] = eac_df["system"].map(SYSTEM_LABELS)
@@ -139,15 +143,20 @@ def render_eac_by_year_section(comparison_df: pd.DataFrame) -> None:
             hide_index=True,
         )
         st.download_button(
-            "⬇ Export CSV",
-            data=eac_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-            file_name=f"equivalent_annualised_cost_by_installation_year_{timestamp}.csv",
-            mime="text/csv",
+            "⬇ Export results",
+            data=create_excel_content_with_licence(
+                inputs=inputs,
+                assumptions_text=build_assumptions_text(inputs),
+                df_for_export=eac_df_for_export,
+                results_sheet_name="EAC by installation year",
+            ),
+            file_name=f"equivalent_annualised_cost_by_installation_year_{timestamp}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
 
 def render_eac_breakdown_section(
-    comparison_df: pd.DataFrame, annual_breakdown_df: pd.DataFrame
+    inputs: AppInputs, comparison_df: pd.DataFrame, annual_breakdown_df: pd.DataFrame
 ):
 
     render_section_heading("Cost breakdown")
@@ -269,10 +278,15 @@ def render_eac_breakdown_section(
         )
 
         st.download_button(
-            "⬇ Export CSV",
-            data=eac_breakdown_df_for_export.to_csv(index=False).encode("utf-8-sig"),
-            file_name=f"equivalent_annualised_cost_breakdown_by_installation_year_{timestamp}.csv",
-            mime="text/csv",
+            "⬇ Export results",
+            data=create_excel_content_with_licence(
+                inputs=inputs,
+                assumptions_text=build_assumptions_text(inputs),
+                df_for_export=eac_breakdown_df_for_export,
+                results_sheet_name="EAC breakdown by year",
+            ),
+            file_name=f"equivalent_annualised_cost_breakdown_by_installation_year_{timestamp}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
     st.divider()
@@ -331,10 +345,15 @@ def render_eac_breakdown_section(
         st.dataframe(cashflow_df_for_export, width="stretch", hide_index=True)
         installation_year = int(cashflow_df_for_export["Installation year"].iloc[0])
         st.download_button(
-            "⬇ Export CSV",
-            data=annual_breakdown_df.to_csv(index=False).encode("utf-8-sig"),
-            file_name=f"cost_of_ownership_annual_breakdown_installed_{installation_year}_{timestamp}.csv",
-            mime="text/csv",
+            "⬇ Export results",
+            data=create_excel_content_with_licence(
+                inputs=inputs,
+                assumptions_text=build_assumptions_text(inputs),
+                df_for_export=cashflow_df_for_export,
+                results_sheet_name="Cost of ownership breakdown",
+            ),
+            file_name=f"cost_of_ownership_annual_breakdown_installed_{installation_year}_{timestamp}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
 

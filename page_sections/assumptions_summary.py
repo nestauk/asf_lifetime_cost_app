@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
+from components.results_export import create_assumptions_summary_with_licence
 from config.defaults import (
     BASE_YEAR_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
@@ -254,14 +255,14 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
     )
     st.download_button(
         label="⬇ Download these assumptions",
-        data=_build_assumptions_text(inputs),
+        data=create_assumptions_summary_with_licence(inputs),
         file_name=f"{timestamp}_assumptions_nesta_lifetime_cost_model.txt",
         mime="text/plain",
     )
 
 
-def _build_assumptions_text(inputs: AppInputs) -> str:
-    """Plain-text version of the assumptions summary, for the download button."""
+def build_assumptions_text(inputs: AppInputs) -> str:
+    """Plain-text version of the assumptions summary."""
     hp = inputs.heat_pump
     gb = inputs.gas_boiler
     ep = inputs.energy_prices
@@ -338,4 +339,5 @@ def _build_assumptions_text(inputs: AppInputs) -> str:
         f"  Gas: {ep.gas_current_price:.2f} p/kWh, {gas_growth_desc}",
         f"  Electricity: {electricity_desc}",
     ]
-    return "\n".join(lines)
+    return lines
+    # return "\n".join(lines)

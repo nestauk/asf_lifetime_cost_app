@@ -39,9 +39,9 @@ render_page_title(
     subtitle="For every installation year, this page solves for the subsidy that makes the heat pump's equivalent annual cost match the gas boiler's.",
 )
 render_page_context_callout(
-    "Subsidy is the one thing you don't set here - it's the answer, not an input. Everything else "
-    "(property, energy prices, heat pump and gas boiler assumptions) comes from the sidebar, exactly "
-    "as it does on the comparison page."
+    "Subsidy is not an input on this page as it is the output. "
+    "Everything else (property, energy prices, heat pump and gas boiler assumptions)"
+    "comes from the sidebar, exactly as it does on the comparison page."
 )
 
 required_subsidy_df = build_required_subsidy_df(user_inputs)
@@ -53,7 +53,9 @@ render_required_subsidy_chart_section(required_subsidy_df)
 render_required_subsidy_table_section(required_subsidy_df)
 
 # --- View and download button ---#
-render_download_required_subsidy_section(required_subsidy_df)
+render_download_required_subsidy_section(
+    inputs=user_inputs, required_subsidy_df=required_subsidy_df
+)
 
 
 # ---Assumptions table ---#

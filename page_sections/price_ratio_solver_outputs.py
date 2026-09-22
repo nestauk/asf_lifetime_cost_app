@@ -7,9 +7,11 @@ import pandas as pd
 import streamlit as st
 
 from components.layout import render_section_heading
+from components.results_export import create_excel_content_with_licence
 from config.defaults import BASE_YEAR_DEFAULT, INSTALL_END_YEAR, INSTALL_START_YEAR
 from model_integration.schema import AppInputs
 from model_integration.trajectories import build_gas_prices
+from page_sections.assumptions_summary import build_assumptions_text
 from results.charts import build_required_price_ratio_chart
 from results.compute import (
     build_required_electricity_price_summary_df,
@@ -65,7 +67,7 @@ def render_required_price_ratio_section(
     render_required_electricity_price_table_section(electricity_price_summary_df)
 
     render_download_required_electricity_price_summary_section(
-        electricity_price_summary_df
+        inputs=inputs, electricity_price_summary_df=electricity_price_summary_df
     )
 
 
@@ -146,6 +148,7 @@ def render_required_electricity_price_table_section(
 
 
 def render_download_required_electricity_price_summary_section(
+    inputs: AppInputs,
     electricity_price_summary_df: pd.DataFrame,
 ) -> None:
 
@@ -166,11 +169,13 @@ def render_download_required_electricity_price_summary_section(
     installation_year = int(electricity_price_summary_df["installation_year"].iloc[0])
 
     st.download_button(
-        "⬇ Export CSV",
-        data=electricity_price_summary_df_for_export.to_csv(index=False).encode(
-            "utf-8-sig"
+        "⬇ Export results",
+        data=create_excel_content_with_licence(
+            inputs=inputs,
+            assumptions_text=build_assumptions_text(inputs),
+            df_for_export=electricity_price_summary_df_for_export,
+            results_sheet_name="Price ratio for parity by year",
         ),
-        file_name=f"electricity_gas_price_ratio_installed_{installation_year}_{timestamp}.csv",
-        mime="text/csv",
-        key="download_required_electricity_price_summary",
+        file_name=f"electricity_gas_price_ratio_installed_{installation_year}_{timestamp}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
