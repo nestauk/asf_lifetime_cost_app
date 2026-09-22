@@ -93,12 +93,13 @@ input_rows = [
         "Household",
         "Heat demand met by the gas boiler",
         f"{ASHP_TOTAL_HEAT_DEMAND_DEFAULT:,.0f} kWh/yr",
-        "The property's baseline heat need (space heat + hot water) met by a gas boiler, before "
-        "switching to a heat pump. Used to calculate the gas boiler's running cost. Default value "
-        "matches the median heat demand for a home installing an 8-10 kW air-to-water heat pump in "
-        "the 2025/26 financial year <span style='color:red;'>(TODO UPDATE MCS DATA SOURCE)</span>, since the "
-        "heat pump uplift defaults to 0% — at any other uplift setting, this figure would be lower "
-        "than the heat pump's own demand.",
+        (
+            "The property's baseline heat need (space heat + hot water) met by a gas boiler, before "
+            "switching to a heat pump. Used to calculate the gas boiler's running cost. Default value "
+            "corresponds to the median heat demand for homes installing an 8-10 kW air-to-water heat pump in "
+            "the 2025/26 financial year, from analysis of the [MCS Installations Database](https://certificate.microgenerationcertification.org/) "
+            "since the heat pump uplift default is 0%. At a higher uplift, this figure would be lower than the demand with a heat pump."
+        ),
     ),
     (
         "Household",
@@ -140,9 +141,11 @@ input_rows = [
         "Heat pump",
         "Installation cost today",
         f"£{ASHP_INSTALLATION_COST_DEFAULT:,.0f}",
-        "The installation cost before any subsidy. Feeds into capital cost, and (if financed) the size of loan repayments. Default value "
-        "is the median cost for a home installing an 8-10 kW air-to-water heat pump in "
-        "the 2025/26 financial year <span style='color:red;'>(TODO UPDATE MCS DATA SOURCE)</span>",
+        (
+            "The installation cost before any subsidy. Feeds into capital cost, and (if financed) the size of loan repayments. Default value "
+            "is the median cost for a home installing an 8-10 kW air-to-water heat pump in "
+            "the 2025/26 financial year , from analysis of the [MCS Installations Database](https://certificate.microgenerationcertification.org/)"
+        ),
     ),
     (
         "Heat pump",
@@ -258,7 +261,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 # ---------------------------------------------------------------------------
 # Explaining calculations
