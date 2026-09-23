@@ -31,14 +31,12 @@ INFLATION_RATE_DEFAULT = 0.02  # fraction where 0.02 is 2%
 # ---------------------------------------------------------------------------
 # Default household heat demand
 # ---------------------------------------------------------------------------
-PROPERTY_DESCRIPTION = "average home fitting an 8-10 kW air-to-water heat pump"
 
 # Heat pump demand
-# median heat demand for homes fitting an 8-10 kW A2W heat pump in FY 2025/26
-# Source: analysis of MCS data `raw_historical_mcs_installations_20260705.csv`
-# TODO: Link to final analysis notebook in asf_lifetime_cost_model
-ASHP_SPACE_HEAT_DEMAND = 13_668  # kWh/year
-ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND = 3_155  # kWh/year
+# median heat demand of homes fitting an 8-10 kW A2W heat pump in FY 2025/26
+# Source: see analysis in asf_lifetime_cost_model/analysis/notebooks/typical_install_mcs_epc_analysis.py
+ASHP_SPACE_HEAT_DEMAND = 13_745  # kWh/year
+ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND = 3_057  # kWh/year
 ASHP_TOTAL_HEAT_DEMAND_DEFAULT = (
     ASHP_SPACE_HEAT_DEMAND + ASHP_DOMESTIC_HOT_WATER_HEAT_DEMAND
 )
@@ -109,10 +107,9 @@ ASHP_TOU_DISCOUNT_DEFAULT = 0.0
 ASHP_TOU_DISCOUNT_MIN = 0.0
 ASHP_TOU_DISCOUNT_MAX = 0.50
 
-# Median installation cost for homes fitting an 8-10 kW A2W heat pump in FY 2025/26
-# Source: analysis of MCS data `raw_historical_mcs_installations_20260705.csv`
-# TODO: Link to final analysis notebook in asf_lifetime_cost_model
-ASHP_INSTALLATION_COST_DEFAULT = 12_500  # £
+# Median installation cost of homes fitting an 8-10 kW A2W heat pump in FY 2025/26
+# Source: see analysis in asf_lifetime_cost_model/analysis/notebooks/typical_install_mcs_epc_analysis.py
+ASHP_INSTALLATION_COST_DEFAULT = 12_524  # £
 
 # Rate of change of installation cost in future years
 # (fraction, where -0.025 is -2.5% per year)

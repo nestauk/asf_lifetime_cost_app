@@ -97,8 +97,17 @@ input_rows = [
             "The property's baseline heat need (space heat + hot water) met by a gas boiler, before "
             "switching to a heat pump. Used to calculate the gas boiler's running cost. Default value "
             "corresponds to the median heat demand for homes installing an 8-10 kW air-to-water heat pump in "
-            "the 2025/26 financial year, from analysis of the [MCS Installations Database](https://certificate.microgenerationcertification.org/) "
-            "since the heat pump uplift default is 0%. At a higher uplift, this figure would be lower than the demand with a heat pump."
+            "the 2025/26 financial year*, from analysis of the "
+            '<a href="https://certificate.microgenerationcertification.org/" target="_blank" '
+            'style="color:#0F294A; font-weight:700; text-decoration:underline;">MCS Installations Database</a> '
+            "since the heat pump uplift default is 0%. At a higher uplift, this figure would be lower than the "
+            "demand with a heat pump. <br>"
+            '<span style="font-size:12px; color:#888;">*This median heat demand typically corresponded to a '
+            "5-room (2-3 bedroom) detached house, estimated using data in the "
+            '<a href="https://get-energy-performance-data.communities.gov.uk/" target="_blank" '
+            'style="color:#888; text-decoration:underline;">Domestic EPC for England and Wales</a> and '
+            '<a href="https://statistics.gov.scot/data/domestic-energy-performance-certificates" target="_blank" '
+            'style="color:#888; text-decoration:underline;">Domestic EPC for Scotland</a>.</span>'
         ),
     ),
     (

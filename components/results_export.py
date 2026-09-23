@@ -57,7 +57,7 @@ def build_attribution_statement(inputs: AppInputs) -> list[str]:
             "(https://certificate.microgenerationcertification.org/)."
         )
         sources.append(
-            "This median heat demand broadly corresponds to a [INSERT PROPERTY TYPE], estimated "
+            "This median heat demand typically corresponded to a 5-room (2-3 bedroom) detached house, estimated "
             "using data in the Domestic EPC for England and Wales "
             "(https://get-energy-performance-data.communities.gov.uk/) (Open Government Licence "
             "v.3.0: https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) "
@@ -74,15 +74,14 @@ def build_attribution_statement(inputs: AppInputs) -> list[str]:
         )
     if used_gas_price_cap:
         sources.append(
-            "• Modelled price trajectory based on latest published GB average Ofgem price cap "
+            "• Modelled gas price trajectory started with the latest published GB average Ofgem price cap for the current year "
             "(https://www.ofgem.gov.uk/your-energy-supply/your-energy-bill/energy-price-cap-unit-rates-and-standing-charges) "
             "(Open Government Licence v.3.0: "
             "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)."
         )
     if used_electricity_price_cap:
         sources.append(
-            "• Modelled electricity price trajectory based on latest published GB average Ofgem "
-            "price cap "
+            "• Modelled electricity price trajectory started with the latest published GB average Ofgem price cap for the current year "
             "(https://www.ofgem.gov.uk/your-energy-supply/your-energy-bill/energy-price-cap-unit-rates-and-standing-charges) "
             "(Open Government Licence v.3.0: "
             "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)."

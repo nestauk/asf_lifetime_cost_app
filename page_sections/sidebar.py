@@ -58,7 +58,6 @@ from config.defaults import (
     INSTALL_END_YEAR,
     INSTALL_START_YEAR,
     OPERATING_END_YEAR,
-    PROPERTY_DESCRIPTION,
     get_electricity_price_default,
     get_gas_price_default,
     get_latest_gas_standing_charge,
@@ -83,9 +82,7 @@ FUTURE_YEARS = list(range(INSTALL_START_YEAR + 1, OPERATING_END_YEAR + 1))  # 20
 # Fixed section
 # ---------------------------------------------------------------------------
 def render_fixed_inputs() -> None:
-    render_sidebar_section_header(
-        "Fixed inputs", "Set for you. You can't change these."
-    )
+    render_sidebar_section_header("Fixed inputs", " ")
     # ---Inflation and discounting--- #
     col1, col2 = st.columns(2)
     with col1:
@@ -118,7 +115,7 @@ def render_fixed_inputs() -> None:
 def render_user_inputs_heading() -> None:
     render_sidebar_section_header(
         "Your inputs",
-        "Set today's values and, how they change over time where relevant. "
+        "Set values for the current year, and future years where relevant. "
         "Reset everything with the button at the bottom of the sidebar.",
     )
     render_divider()
@@ -168,7 +165,7 @@ def render_household_section() -> tuple[float, float]:
         step=100,
         key=_gen_key("boiler_heat_demand_input"),
         help="The household's heat demand before switching to a heat pump. "
-        "Default: median for a home fitting an 8-10 kW heat pump. Adjust for a "
+        "Default: median for a home fitting an 8-10 kW heat pump in FY 2025/26 (~2-3 bed detached house). Adjust for a "
         "larger, smaller, or better/worse insulated home.",
     )
 
@@ -210,16 +207,16 @@ def _render_fuel_price_inputs(
         render_solved_for_note(
             title=f"{fuel_label} price is solved for on this page",
             body=(
-                f"You don't set an {fuel_label.lower()} price here. The model works out the headline "
-                "price cap rate — before any time-of-use discount — that each year would need to be "
-                "for the heat pump's annual cost to match the gas boiler's. Gas price stays as you "
+                f"{fuel_label} price is not set on this page. The model calculates the headline "
+                "price cap rate (before any time-of-use discount) that each year would need to be "
+                "for the heat pump's annual cost to match the gas boiler's. Gas price stays as it is "
                 "set it above."
             ),
         )
         return None, None, None, {}
 
     current_price = st.number_input(
-        f"{fuel_label} unit price today (p/kWh)",
+        f"{fuel_label} unit price in current year (p/kWh)",
         min_value=0.0,
         value=default_current_price,
         step=1.0,
@@ -587,17 +584,17 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         step=1,
         format="%d%%",
         key=_gen_key("ashp_tou_discount_slider"),
-        help="The saving you assume a heat pump owner gets on their electricity unit rate with a time-of-use tariff. Set to 0 to use the standard price cap rate.",
+        help="Assumed saving that a heat pump owner gets on their electricity unit rate with a time-of-use tariff. Set to 0 to use the standard price cap rate.",
     )
     tou_tariff_discount = tou_discount_pct / 100
 
     installation_cost_current = st.number_input(
-        "Installation cost today (£)",
+        "Installation cost in current year (£)",
         min_value=0,
         value=ASHP_INSTALLATION_COST_DEFAULT,
         step=100,
         key=_gen_key("ashp_current_installation_input"),
-        help=f"Default: Median installation cost for a {PROPERTY_DESCRIPTION}.",
+        help="Default: Median installation cost for a home fitting an 8-10 kW heat pump in FY 2025/26.",
     )
 
     growth_mode_label = st.segmented_control(
@@ -639,7 +636,7 @@ def render_heat_pump_section(solve_for_subsidy: bool = False) -> HeatPumpInputs:
         render_solved_for_note(
             title="Subsidy is solved for on this page",
             body=(
-                "You don't set a subsidy here. The model works out the subsidy each year would "
+                "Subsidy level is not set on this page. The model works out the subsidy each year would "
                 "need to reach lifetime cost parity with the gas boiler."
             ),
         )
