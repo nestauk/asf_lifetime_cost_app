@@ -25,7 +25,9 @@ current_dir = os.getcwd()
 # configure browser-tab-level settings for the entire app
 favicon = Image.open(f"{current_dir}/images/nesta_favicon.png")
 st.set_page_config(
-    page_title="Nesta Lifetime Cost Model", layout="wide", page_icon=favicon
+    page_title="Nesta Heating System Lifetime Cost Tool",
+    layout="wide",
+    page_icon=favicon,
 )
 
 # top banners
