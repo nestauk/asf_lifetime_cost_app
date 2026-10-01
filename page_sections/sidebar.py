@@ -280,13 +280,22 @@ def _render_fuel_price_inputs(
         )
 
         editor_key = _gen_key(f"{key_prefix}_overrides_editor")
-        if editor_key not in st.session_state:
+        last_price_key = _gen_key(f"{key_prefix}_overrides_last_price")
+
+        needs_refresh = (
+            editor_key not in st.session_state
+            or last_price_key not in st.session_state
+            or st.session_state[last_price_key] != current_price
+        )
+
+        if needs_refresh:
             st.session_state[editor_key] = pd.DataFrame(
                 {
                     "Year": FUTURE_YEARS,
                     "Price (p/kWh)": [round(current_price, 2)] * len(FUTURE_YEARS),
                 }
             )
+            st.session_state[last_price_key] = current_price
 
         edited_df = st.data_editor(
             st.session_state[editor_key],
@@ -315,6 +324,7 @@ def _render_fuel_price_inputs(
                         "Price (p/kWh)": [round(current_price, 2)] * len(FUTURE_YEARS),
                     }
                 )
+                st.session_state[last_price_key] = current_price
                 st.rerun()
         with count_col:
             plural = "year" if len(overrides) == 1 else "years"
