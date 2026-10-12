@@ -45,23 +45,26 @@ with main_col:
     render_page_title(
         title="Heat pump vs. gas boiler lifetime cost tool",
     )
+    st.markdown(
+        """
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:10px;">
+        This tool compares the lifetime cost of an <b>air-to-water heat pump</b> against a <b>gas boiler</b>.
+        It is designed for specialists working in clean heat to explore heat decarbonisation economics under different modelling assumptions and scenarios.
+    </div>
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
+        You can set <b>your own assumptions</b> about heat demand, the heat pump and boiler, energy prices,
+        installation costs, maintenance, financing and subsidy. The tool will then <b>calculate the lifetime costs</b> of an air-to-water heat pump and gas boiler under those assumptions.
+    </div>
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
+        There are three pages to explore that calculate different outputs:
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
         """
-    <div style="font-size:22px; font-weight:800; color:#0F294A; margin-bottom:10px;">
-        About this tool
-    </div>
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:10px;">
-        This tool compares the lifetime cost of an <b>air-to-water heat pump</b> against a <b>gas boiler</b>.
-        Set your own assumptions about heat demand, the heat pump and boiler, energy prices,
-        installation costs, maintenance, financing and subsidy.
-    </div>
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
-        Then explore the results across three pages: a direct cost comparison, and two pages
-        that solve for the subsidy or the electricity price a heat pump would need to match a
-        gas boiler.
-    </div>
-    <div style="font-size:13px; color:#888; line-height:1.5; margin-bottom:32px;">
+    <div style="font-size:13px; color:#888; line-height:1.5; margin-bottom:16px;">
         Each page has its own sidebar for these assumptions, so you'll need to set them again
         if you switch pages.
     </div>
@@ -169,3 +172,21 @@ with main_col:
         unsafe_allow_html=True,
     )
     st.page_link("views/methodology.py", label="Go to Guide & methodology →", icon=None)
+
+    # Disclaimer
+    st.markdown(
+        """
+    <div style="background:#0F294A; padding:20px 28px; margin-top:30px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+        <div>
+            <div style="font-size:17px; font-weight:700; color:#FFFFFF; margin-bottom:20px;">
+                Nesta is a research and innovation foundation that designs, tests and scales solutions for the biggest challenges of our time. Our mission is to reduce home carbon emissions in the UK by 30% from 2019 levels by 2030.
+            </div>
+            <div style="font-size:14px; color:#FFFFFF; line-height:1.6;">
+                This tool is provided on an open basis to support policy analysts, researchers, government, and sector specialists in exploring heat decarbonisation economics. 
+                It is designed for exploratory modeling and scenario analyses. Calculations rely on illustrative default parameters and custom user inputs; they do not constitute official financial, technical, or policy advice. Nesta accepts no liability for decisions made or actions taken based on outputs from this application. 
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
