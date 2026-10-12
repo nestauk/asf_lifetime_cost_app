@@ -5,8 +5,7 @@ primaryColor="#0000FF"
 # Background colour of the app
 backgroundColor="#FFFFFF"
 # A secondary background colour (e.g. changes the colour of the sidebar)
-secondaryBackgroundColor="#F0F2F6"
+secondaryBackgroundColor="#F6F4F2"
 # Colour of the text
-textColor="#262730"
+textColor="#0F294A"
 [client]
-showSidebarNavigation = false
