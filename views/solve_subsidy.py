@@ -39,7 +39,7 @@ render_page_title(
     subtitle="For every installation year, this page solves for the subsidy that makes the heat pump's equivalent annual cost match the gas boiler's.",
 )
 render_page_context_callout(
-    "Subsidy is not an input on this page as it is the output. "
+    "Subsidy is not an input on this page, it is the output. "
     "Everything else (property, energy prices, heat pump and gas boiler assumptions)"
     "comes from the sidebar, exactly as it does on the comparison page."
 )
