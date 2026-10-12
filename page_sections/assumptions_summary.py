@@ -18,7 +18,6 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
-from components.results_export import create_assumptions_summary_with_licence
 from config.defaults import (
     BASE_YEAR_DEFAULT,
     DISCOUNT_RATE_DEFAULT,
@@ -230,36 +229,6 @@ def render_assumptions_summary(inputs: AppInputs) -> None:
             unsafe_allow_html=True,
         )
 
-    # ------------------------------------------------------------------
-    # Download button
-    # ------------------------------------------------------------------
-    st.markdown(
-        """
-        <style>
-            [data-testid="stDownloadButton"] button {
-                background-color: #0000FF;
-                color: white;
-                font-weight: 700;
-                border: none;
-                clip-path: polygon(
-                                0 0,
-                                calc(100% - 14px) 0,
-                                100% 14px,
-                                100% 100%,
-                                14px 100%,
-                                0 calc(100% - 14px)
-                            );
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.download_button(
-        label="⬇ Download these assumptions",
-        data=create_assumptions_summary_with_licence(inputs),
-        file_name=f"{timestamp}_assumptions_nesta_lifetime_cost_model.txt",
-        mime="text/plain",
-    )
-
 
 def build_assumptions_text(inputs: AppInputs) -> str:
     """Plain-text version of the assumptions summary."""
@@ -310,7 +279,7 @@ def build_assumptions_text(inputs: AppInputs) -> str:
         )
 
     lines = [
-        "The assumptions behind these results",
+        "The assumptions set by the user to generate these results:",
         f"Base year {BASE_YEAR_DEFAULT}, "
         f"{INFLATION_RATE_DEFAULT:.1%} inflation, {DISCOUNT_RATE_DEFAULT:.1%} discount rate",
         f"Shown as present value, {BASE_YEAR_DEFAULT} real £",
