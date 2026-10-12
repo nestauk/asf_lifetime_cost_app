@@ -61,6 +61,11 @@ methodology_page = st.Page(
     title="Guide & methodology",
     icon="📄",
 )
+terms_of_use_page = st.Page(
+    "views/terms_of_use.py",
+    title="Terms of use",
+    icon="📜",
+)
 
 
 # build the app page-routing system
@@ -72,6 +77,7 @@ pg = st.navigation(
             solve_subsidy_page,
             solve_electricity_price_page,
             methodology_page,
+            terms_of_use_page,
         ]
     },
     position="sidebar",
