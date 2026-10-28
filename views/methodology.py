@@ -285,8 +285,14 @@ st.markdown(
     style="color:#0F294A; font-weight:700; text-decoration:underline;">asf_lifetime_cost_model</a>,
     an open Python package built and maintained by Nesta's
     <a href="https://www.nesta.org.uk/sustainable-future/" target="_blank"
-    style="color:#0F294A; font-weight:700; text-decoration:underline;">A Sustainable Future team</a>,
-    separate from this Streamlit app.
+    style="color:#0F294A; font-weight:700; text-decoration:underline;">A Sustainable Future team</a>.
+    This tool itself is open source and available at
+    <a href="https://github.com/nestauk/asf_lifetime_cost_app" target="_blank"
+    style="color:#0F294A; font-weight:700; text-decoration:underline;">asf_lifetime_cost_app</a>,
+    built using
+    <a href="https://github.com/streamlit/streamlit" target="_blank"
+    style="color:#0F294A; font-weight:700; text-decoration:underline;">Streamlit</a>, 
+    an open-source Python framework for building web apps (Apache License 2.0).
     </div>
     """,
     unsafe_allow_html=True,
