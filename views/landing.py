@@ -4,7 +4,7 @@ import streamlit as st
 
 from components.layout import render_page_title
 
-# Global CSS to style ebery st.page_link() on this page as a solid navy flag-shaped button
+# Global CSS to style every st.page_link() on this page as a solid navy flag-shaped button
 st.markdown(
     """
             <style>
@@ -47,18 +47,54 @@ with main_col:
     )
     st.markdown(
         """
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:10px;">
+    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:24px;">
         This tool compares the lifetime cost of an <b>air-to-water heat pump</b> against a <b>gas boiler</b>.
         It is designed for specialists working in clean heat to explore heat decarbonisation economics under different modelling assumptions and scenarios.
     </div>
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
-        You can set <b>your own assumptions</b> about heat demand, the heat pump and boiler, energy prices,
-        installation costs, maintenance, financing and subsidy. The tool will then <b>calculate the lifetime costs</b> of an air-to-water heat pump and gas boiler under those assumptions.
-    </div>
-    <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px;">
-        There are three pages to explore that calculate different outputs:
-    </div>
     """,
+        unsafe_allow_html=True,
+    )
+
+    # How to use this tool responsibly
+    st.markdown(
+        """
+    <div style="background:#F6F4F2; border-left:4px solid #0000FF; padding:18px 24px; margin-bottom:24px;">
+    <div style="font-size:15px; font-weight:700; color:#0F294A; margin-bottom:10px;">
+        How to use this tool
+    </div>
+    <div style="font-size:14px; color:#333; line-height:1.7; margin-bottom:16px;">
+        Set <b>your own assumptions</b> about heat demand, the heat pump and boiler, energy prices,
+        installation costs, maintenance, financing and subsidy in the sidebar. The tool will then
+        <b>calculate the lifetime costs</b> of an air-to-water heat pump and gas boiler under those
+        assumptions.
+    </div>
+    <hr style="border:none; border-top:1px solid #ddd; margin:0 0 14px 0;">
+    <div style="font-size:12px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+        Please note
+    </div>
+    <div style="font-size:13px; color:#333; line-height:1.6;">
+        &bull; Results depend directly on the inputs and parameters you select in the sidebar.
+        You are responsible for verifying the accuracy and appropriateness of any custom
+        parameters you enter.<br>
+        &bull; Default parameters are generic, illustrative benchmarks. They do not guarantee
+        accuracy for any specific building, geographical location, or commercial scenario.<br>
+        &bull; Treat all calculated outputs as illustrative, indicative estimates for
+        exploratory purposes only.<br>
+        &bull; If you share or distribute results, charts, or exported files from this tool,
+        you must accurately attribute the tool and clearly state the input assumptions used
+        to generate those figures.
+    </div>
+</div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div style="font-size:15px; color:#333; line-height:1.7; margin-bottom:6px; margin-top:10px;">
+            There are three pages you can navigate to in the sidebar that calculate different outputs:
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -176,17 +212,46 @@ with main_col:
     # Disclaimer
     st.markdown(
         """
-    <div style="background:#0F294A; padding:20px 28px; margin-top:30px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
-        <div>
-            <div style="font-size:17px; font-weight:700; color:#FFFFFF; margin-bottom:20px;">
-                Nesta is a research and innovation foundation that designs, tests and scales solutions for the biggest challenges of our time. Our mission is to reduce home carbon emissions in the UK by 30% from 2019 levels by 2030.
-            </div>
-            <div style="font-size:14px; color:#FFFFFF; line-height:1.6;">
-                This tool is provided on an open basis to support policy analysts, researchers, government, and sector specialists in exploring heat decarbonisation economics. 
-                It is designed for exploratory modeling and scenario analyses. Calculations rely on illustrative default parameters and custom user inputs; they do not constitute official financial, technical, or policy advice. Nesta accepts no liability for decisions made or actions taken based on outputs from this application. 
+        <div style="
+            background: #0F294A;
+            padding: 20px 28px;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        ">
+            <div>
+                <div style="
+                    font-size: 17px;
+                    font-weight: 700;
+                    color: #FFFFFF;
+                    margin-bottom: 20px;
+                ">
+                    Nesta is a research and innovation foundation that designs,
+                    tests and scales solutions for the biggest challenges of our
+                    time. Our mission is to reduce home carbon emissions in the UK
+                    by 30% from 2019 levels by 2030.
+                </div>
+                <div style="
+                    font-size: 14px;
+                    color: #FFFFFF;
+                    line-height: 1.6;
+                ">
+                    This resource is made available to policy analysts,
+                    researchers, government, and sector specialists for the
+                    purposes of exploratory modeling and scenario analysis in heat
+                    decarbonisation only. Calculations rely on illustrative
+                    baseline parameters and custom user inputs; they do not
+                    constitute financial, technical, or policy advice. While we
+                    hope you find this useful for your research, analysis, and exploratory work,
+                    please note that this resource is provided for information
+                    purposes only. Nesta is not responsible for any reliance you
+                    may choose to place on the resource, material or outputs it
+                    makes available.
+                </div>
             </div>
         </div>
-    </div>
-    """,
+        """,
         unsafe_allow_html=True,
     )
