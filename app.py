@@ -7,13 +7,13 @@ import streamlit as st  # For building the web app
 from PIL import Image  # For loading images
 
 from components.layout import render_beta_banner, render_top_bar
-from config.auth import check_password
 from config.css_style import set_css_style
 from config.fonts_setup import nestafont
 
-# Password
-if not check_password():
-    st.stop()
+# Update 28/10/26 password removed for public launch
+# # Password
+# if not check_password():
+#     st.stop()
 
 # Setting up themes and fonts
 alt.theme.register("nestafont", enable=True)(lambda: alt.theme.ThemeConfig(nestafont()))
