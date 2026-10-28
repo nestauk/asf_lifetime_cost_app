@@ -40,7 +40,7 @@ render_page_title(
 )
 render_page_context_callout(
     "Subsidy is not an input on this page, it is the output. "
-    "Everything else (property, energy prices, heat pump and gas boiler assumptions)"
+    "Everything else (property, energy prices, heat pump and gas boiler assumptions) "
     "comes from the sidebar, exactly as it does on the comparison page."
 )
 

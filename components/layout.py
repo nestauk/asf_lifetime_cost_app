@@ -65,7 +65,7 @@ def render_beta_banner(
                 letter-spacing: 0.5px;
             ">BETA</span>
             <span style="color: white; font-size: 13px;">
-                {message} &mdash;
+                {message} -
                 <a href="{feedback_link}" style="color: white; text-decoration: underline; font-weight: 700;">
                     tell us what would make it more useful</a>.
             </span>
