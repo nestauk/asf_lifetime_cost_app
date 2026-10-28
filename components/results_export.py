@@ -27,6 +27,8 @@ LICENCE_STATEMENT = [
     "You are free to share and adapt this material for non-commercial purposes, "
     "provided you give appropriate credit, provide a link to the license, and distribute your contributions under "
     "the same license as the original.",
+    "When reusing, sharing, or redistributing this workbook or its derived charts, you must keep intact all "
+    "embedded licensing notices, copyright tags, and source attributions provided within the file.",
     "",
     "If you use these results in any reports, products, or publications, please cite it as:",
     f"Heating System Lifetime Cost Tool (2026), Nesta, https://lifetime-costs-explorer.dap-tools.uk/. Accessed on {datestamp}.",
