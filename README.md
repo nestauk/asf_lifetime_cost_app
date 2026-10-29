@@ -1,7 +1,7 @@
 # ASF Heating system lifetime cost app
 An interactive Streamlit app for comparing the lifetime costs of heat pumps vs. gas boilers.
 
-**Deployed app:** _not yet deployed (link to the EC2-hosted app will go here)_
+**Deployed app:** https://lifetime-costs-explorer.dap-tools.uk/
 
 ## 🧮 Underlying model
 
