@@ -51,10 +51,12 @@ Each page in `views/` follows the same pattern:
 app.py                              # Entrypoint: theming + st.navigation() routing to views/
 
 views/                              # One file per page, registered in app.py
+├── landing.py                      # User landing page
 ├── lifetime_cost_comparison.py     # Main comparison page (heat pump vs gas boiler)
 ├── solve_subsidy.py                # Subsidy solver page
 ├── solve_price_ratio.py            # Electricity-gas price ratio solver page
-└── methodology.py                  # Static methodology/guide page (no model dependency)
+├── methodology.py                  # Static methodology/guide page (no model dependency)
+└── terms_of_use.py                 # Terms of use
 
 page_sections/                      # Renders individual page sections
 ├── sidebar.py                      # Builds AppInputs from sidebar widgets (shared across pages)
@@ -75,6 +77,7 @@ model_integration/                  # Wraps the external asf_lifetime_cost_model
 components/                         # Shared, model-independent UI helpers
 ├── layout.py                       # Top bar, banners, page titles, section headings
 ├── sidebar_builder.py              # Sidebar-specific UI helpers
+├── results_export.py               # Licence and attribution helpers for exportable material
 └── callouts.py                     # Styled callout/divider/context-note renderers
 
 config/                             # Shared, model-independent configuration
