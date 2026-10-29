@@ -2,9 +2,11 @@
 Fonts and colours setup for plots in the dashboard.
 """
 
+import altair as alt
+
 # Fonts and colours
 FONT = "Averta"
-TITLE_FONT = "Averta"
+TITLE_FONT = "Zosia-Display"
 FONTSIZE_TITLE = 16
 FONTSIZE_SUBTITLE = 13
 FONTSIZE_NORMAL = 13
@@ -27,17 +29,28 @@ NESTA_COLOURS = [
 ]
 
 
+@alt.theme.register("nestafont", enable=True)
 def nestafont():
-    """Define Nesta fonts"""
-    return {
-        "config": {
-            "title": {"font": TITLE_FONT, "anchor": "start"},
-            "axis": {"labelFont": FONT, "titleFont": FONT},
-            "header": {"labelFont": FONT, "titleFont": FONT},
-            "legend": {"labelFont": FONT, "titleFont": FONT},
-            "range": {
-                "category": NESTA_COLOURS,
-                "ordinal": {"scheme": NESTA_COLOURS},
-            },
+    return alt.theme.ThemeConfig(
+        {
+            "config": {
+                "title": {"font": TITLE_FONT, "anchor": "start"},
+                "axis": {
+                    "labelFont": FONT,
+                    "labelColor": "#0F294A",
+                    "titleFont": FONT,
+                    "titleColor": "#0F294A",
+                },
+                "header": {"labelFont": FONT, "titleFont": FONT},
+                "legend": {
+                    "labelFont": FONT,
+                    "labelColor": "#0F294A",
+                    "titleFont": FONT,
+                },
+                "range": {
+                    "category": NESTA_COLOURS,
+                    "ordinal": {"scheme": NESTA_COLOURS},
+                },
+            }
         }
-    }
+    )
