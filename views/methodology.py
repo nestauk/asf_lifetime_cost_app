@@ -286,13 +286,9 @@ st.markdown(
     an open Python package built and maintained by Nesta's
     <a href="https://www.nesta.org.uk/sustainable-future/" target="_blank"
     style="color:#0F294A; font-weight:700; text-decoration:underline;">A Sustainable Future team</a>.
-    This tool itself is open source and available at
+    The code behind this tool is available at
     <a href="https://github.com/nestauk/asf_lifetime_cost_app" target="_blank"
-    style="color:#0F294A; font-weight:700; text-decoration:underline;">asf_lifetime_cost_app</a>,
-    built using
-    <a href="https://github.com/streamlit/streamlit" target="_blank"
-    style="color:#0F294A; font-weight:700; text-decoration:underline;">Streamlit</a>, 
-    an open-source Python framework for building web apps (Apache License 2.0).
+    style="color:#0F294A; font-weight:700; text-decoration:underline;">asf_lifetime_cost_app</a>.,
     </div>
     """,
     unsafe_allow_html=True,

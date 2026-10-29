@@ -63,10 +63,10 @@ with main_col:
         How to use this tool
     </div>
     <div style="font-size:14px; color:#333; line-height:1.7; margin-bottom:16px;">
-        Set <b>your own assumptions</b> about heat demand, the heat pump and boiler, energy prices,
-        installation costs, maintenance, financing and subsidy in the sidebar. The tool will then
+        Set <b>your own assumptions in the sidebar</b> about heat demand, the heat pump and boiler, energy prices,
+        installation costs, maintenance, financing and subsidy. The tool will then
         <b>calculate the lifetime costs</b> of an air-to-water heat pump and gas boiler under those
-        assumptions.
+        assumptions and <b>display results on the main page</b>.
     </div>
     <hr style="border:none; border-top:1px solid #ddd; margin:0 0 14px 0;">
     <div style="font-size:12px; font-weight:700; color:#666; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
